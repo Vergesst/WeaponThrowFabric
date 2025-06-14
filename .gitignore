@@ -1,0 +1,16 @@
+# ide config
+.idea
+
+# gradle config
+**.gradle
+
+# build result
+**build
+**run
+
+**.jar
+**.war
+
+# gradle script
+gradlew
+gradlew.bat

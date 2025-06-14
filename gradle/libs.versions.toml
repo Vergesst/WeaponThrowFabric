@@ -1,0 +1,5 @@
+[versions]
+modmenu = "7.2.2" # Check for the latest compatible version
+
+[libraries]
+modmenu = { group = "com.terraformersmc", name = "modmenu", version.ref = "modmenu" }
