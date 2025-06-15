@@ -4,6 +4,7 @@ import me.shedaniel.autoconfig.ConfigData
 import me.shedaniel.autoconfig.annotation.Config
 import me.shedaniel.autoconfig.annotation.ConfigEntry
 
+@Deprecated(message = "ONLY FOR TEST")
 @Config(name = "weaponthrowlite")
 class ModConfig: ConfigData {
     val toggleA = true
