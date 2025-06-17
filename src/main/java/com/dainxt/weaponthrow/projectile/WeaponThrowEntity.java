@@ -1,7 +1,11 @@
 package com.dainxt.weaponthrow.projectile;
 
 import java.util.List;
+import java.util.Objects;
 
+import net.minecraft.entity.damage.DamageSources;
+import net.minecraft.entity.damage.DamageTypes;
+import net.minecraft.network.listener.ClientPlayPacketListener;
 import org.jetbrains.annotations.Nullable;
 
 import com.dainxt.weaponthrow.handlers.ConfigRegistry;
@@ -37,7 +41,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtHelper;
-import net.minecraft.network.Packet;
+import net.minecraft.network.packet.Packet;
 import net.minecraft.particle.ItemStackParticleEffect;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -104,21 +108,21 @@ public class WeaponThrowEntity extends PersistentProjectileEntity implements Fly
 			this.getDataTracker().set(COMPOUND_STACK, stack.writeNbt(new NbtCompound()));
 		}
 		public ItemStack getItemStack() {
-			return ItemStack.fromNbt(((NbtCompound)this.getDataTracker().get(COMPOUND_STACK)));
+			return ItemStack.fromNbt(this.getDataTracker().get(COMPOUND_STACK));
 		}
 		
 		public void shouldDestroy(boolean stack) {
 			this.getDataTracker().set(SHOULD_DESTROY, stack);
 		}
 		public boolean shouldDestroy() {
-			return ((Boolean)this.getDataTracker().get(SHOULD_DESTROY));
+			return this.getDataTracker().get(SHOULD_DESTROY);
 		}
 		
 		public void setDestroyedBlock(BlockPos pos) {
 			this.getDataTracker().set(DESTROYED_BLOCK, pos);
 		}
 		public BlockPos getDestroyedBlock() {
-			return ((BlockPos)this.getDataTracker().get(DESTROYED_BLOCK));
+			return this.getDataTracker().get(DESTROYED_BLOCK);
 		}
 
 
@@ -128,24 +132,21 @@ public class WeaponThrowEntity extends PersistentProjectileEntity implements Fly
 	         this.dealtDamage = true;
 	      }
 	      
-	      if(!this.getDestroyedBlock().equals(BlockPos.ZERO) && !this.world.isClient) {
-	    	  
-	    	  this.doInteractions(() -> { 
-	    		  SoundEvent event = this.world.getBlockState(this.getDestroyedBlock()).getSoundGroup().getBreakSound();
-	    		  boolean destroyed = ((ServerPlayerEntity)this.getOwner()).interactionManager.tryBreakBlock(this.getDestroyedBlock());
-	    		  if(destroyed) {
-	    			  this.world.playSound(null, this.getDestroyedBlock(), event , SoundCategory.AMBIENT, 10, 1.0F);
-	    		  }
-	    	  });
-	    	  
-	    	  this.setDestroyedBlock(BlockPos.ORIGIN);
+	      if(!this.getDestroyedBlock().equals(BlockPos.ZERO) && !this.getWorld().isClient) {
+
+			  this.doInteractions(() -> {
+				  SoundEvent event = this.getWorld().getBlockState(this.getDestroyedBlock()).getSoundGroup().getBreakSound();
+				  boolean destroyed = ((ServerPlayerEntity) Objects.requireNonNull(this.getOwner())).interactionManager.tryBreakBlock(this.getDestroyedBlock());
+				  if(destroyed) {
+					  this.getWorld().playSound(null, this.getDestroyedBlock(), event , SoundCategory.AMBIENT, 10, 1.0F);
+				  }
+			  });
+			  this.setDestroyedBlock(BlockPos.ORIGIN);
 	      }
 
-	      
 	      int gravityWorld = ConfigRegistry.COMMON.get().enchantments.enableGravity ? EnchantmentHelper.getLevel(EnchantmentHandler.GRAVITY, this.getItemStack()) : 0;
-	      if(gravityWorld > 0) {
-	    	  this.setNoGravity(true);
-			   if(this.world.isOutOfHeightLimit(this.getBlockPos())) {
+	      if(gravityWorld > 0) {this.setNoGravity(true);
+			   if(this.getWorld().isOutOfHeightLimit(this.getBlockPos())) {
 				   this.setVelocity(this.getVelocity().multiply(1, 0, 1));
 			   }
 			   if((Math.abs(this.getVelocity().getX()) < 0.1 && Math.abs(this.getVelocity().getZ()) < 0.1)) {
@@ -154,35 +155,24 @@ public class WeaponThrowEntity extends PersistentProjectileEntity implements Fly
 				   
 			   }
 	      }
-	      
-
-	      /*if(this.inGround && MathHelper.abs(this.getPitch()) < 45 && this.getItemStack().getItem() instanceof BlockItem) {
-	    	  if(!(Math.abs(this.getVelocity().getX()) < 0.1 && Math.abs(this.getVelocity().getZ()) < 0.1)) {
-		    	  this.setVelocity(this.getVelocity().multiply(-0.5F));
-		    	  this.counterClockwiseBounce = !this.counterClockwiseBounce;
-		    	  this.inGround = false;
-	    	  }
-	      }*/
 
 	      Entity entity = this.getOwner();
-	      
-	      
+
 	      int i = ConfigRegistry.COMMON.get().enchantments.enableReturn ? this.dataTracker.get(LOYALTY_LEVEL) : 0;
 	      
 	      if (i > 0 && (this.dealtDamage || this.isNoClip()) && entity != null) {
 
 	         if (!this.shouldReturnToThrower()) {
-	        	 
-	            if (!this.world.isClient && this.pickupType == PersistentProjectileEntity.PickupPermission.ALLOWED) {
+	            if (!this.getWorld().isClient && this.pickupType == PersistentProjectileEntity.PickupPermission.ALLOWED) {
 	               this.dropStack(this.getItemStack(), 0.1F);
 	            }
 
 	            this.remove(RemovalReason.DISCARDED);
-	         } else if (i > 0) {
+	         } else {
 	            this.setNoClip(true);
 	            Vec3d Vec3d = entity.getEyePos().subtract(this.getPos());
 	            this.setPos(this.getX(), this.getY() + Vec3d.y * 0.015D * (double)i, this.getZ());
-	            if (this.world.isClient) {
+	            if (this.getWorld().isClient) {
 	               this.lastRenderY = this.getY();
 	            }
 
@@ -224,32 +214,31 @@ public class WeaponThrowEntity extends PersistentProjectileEntity implements Fly
 		   
 	      Entity entity = p_213868_1_.getEntity();
 	      float f = this.attackDamage;
-	      if (entity instanceof LivingEntity) {
-	         LivingEntity livingentity = (LivingEntity)entity;
+	      if (entity instanceof LivingEntity livingentity) {
 
-	         f += ConfigRegistry.COMMON.get().enchantments.enableThrow ? EnchantmentHelper.getLevel(EnchantmentHandler.THROW, this.getItemStack())*1F : 0;
+			  f += ConfigRegistry.COMMON.get().enchantments.enableThrow ? EnchantmentHelper.getLevel(EnchantmentHandler.THROW, this.getItemStack())*1F : 0;
 	         f += EnchantmentHelper.getAttackDamage(this.getItemStack(), livingentity.getGroup());
 	      }
 
 	      Entity entity1 = this.getOwner();
-	      DamageSource damagesource = DamageSource.thrownProjectile(this, (Entity)(entity1 == null ? this : entity1));
+//	      DamageSource damagesource = DamageSource.thrownProjectile(this, entity1 == null ? this : entity1);
+			var damageSource = this.getDamageSources().thrown(this, entity1 == null ? this : entity1);
 	      
 
 	      
 	      this.dealtDamage = true;
 	      SoundEvent soundevent = SoundEvents.ITEM_TRIDENT_HIT;
 
-	      if (entity.damage(damagesource, f)) {
+	      if (entity.damage(damageSource, f)) {
 
 	         if (entity.getType() == EntityType.ENDERMAN) {
 	            return;
 	         }
 	         
-	         if (entity instanceof LivingEntity) {
-	            LivingEntity livingentity1 = (LivingEntity)entity;
-	            
-		         
-			     int contusionWorld = ConfigRegistry.COMMON.get().enchantments.enableConccusion ? EnchantmentHelper.getLevel(EnchantmentHandler.CONCCUSION, this.getItemStack()) : 0;
+	         if (entity instanceof LivingEntity livingentity1) {
+
+
+				 int contusionWorld = ConfigRegistry.COMMON.get().enchantments.enableConccusion ? EnchantmentHelper.getLevel(EnchantmentHandler.CONCCUSION, this.getItemStack()) : 0;
 		         
 			     if (contusionWorld > 0) {
 				      livingentity1.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, 20*2*contusionWorld, 5));
@@ -260,17 +249,15 @@ public class WeaponThrowEntity extends PersistentProjectileEntity implements Fly
 			      int groundedWorld = ConfigRegistry.COMMON.get().enchantments.enableGroundedEdge ? EnchantmentHelper.getLevel(EnchantmentHandler.GROUNDEDEDGE, this.getItemStack()) : 0;
 			      
 			      if(fireTime > 0 || groundedWorld > 0) {
-				      List<LivingEntity> nearEntities = world.getNonSpectatingEntities(LivingEntity.class, this.getBoundingBox().expand(1.0D));
+				      List<LivingEntity> nearEntities = this.getWorld().getNonSpectatingEntities(LivingEntity.class, this.getBoundingBox().expand(1.0D));
 			
 				      if(!nearEntities.isEmpty()) {
-				    	  for(LivingEntity nearEntity: nearEntities) {
-				    		  if(nearEntity.getRandom().nextInt(3) == 0) {
-				    			  nearEntity.setOnFireFor(fireTime);
-				    		  }
-				    		  if(true) {
-				    			  nearEntity.addStatusEffect(new StatusEffectInstance(StatusEffects.WEAKNESS, 80, groundedWorld-1));
-				    		  }
-				    	  }
+						  for(LivingEntity nearEntity: nearEntities) {
+							  if(nearEntity.getRandom().nextInt(3) == 0) {
+								  nearEntity.setOnFireFor(fireTime);
+							  }
+							  nearEntity.addStatusEffect(new StatusEffectInstance(StatusEffects.WEAKNESS, 80, groundedWorld - 1));
+						  }
 				      }
 			    }
 			      
@@ -282,23 +269,22 @@ public class WeaponThrowEntity extends PersistentProjectileEntity implements Fly
 	            this.onHit(livingentity1);
 	            
 	            if(this.getItemStack().getItem() instanceof BlockItem) {
-	            	Block blockItem = Block.getBlockFromItem(this.getItemStack().getItem());
-	            	
+					Block blockItem = Block.getBlockFromItem(this.getItemStack().getItem());
 		            if(blockItem instanceof SandBlock) {
-		            	if(livingentity1.getRandom().nextInt(10) == 0) livingentity1.addStatusEffect(new StatusEffectInstance(StatusEffects.BLINDNESS, 60, 3));
+						if(livingentity1.getRandom().nextInt(10) == 0) livingentity1.addStatusEffect(new StatusEffectInstance(StatusEffects.BLINDNESS, 60, 3));
 		            }
 		            else if (blockItem instanceof TorchBlock){
-		            	if(livingentity1.getRandom().nextInt(5) == 0) livingentity1.setOnFireFor(1);
+						if(livingentity1.getRandom().nextInt(5) == 0) livingentity1.setOnFireFor(1);
 		            }
 		            else if (blockItem instanceof AnvilBlock){
-		            	livingentity1.addStatusEffect(new StatusEffectInstance(StatusEffects.NAUSEA, 60, 3));
-		            	livingentity1.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, 60, 5));
+						livingentity1.addStatusEffect(new StatusEffectInstance(StatusEffects.NAUSEA, 60, 3));
+						livingentity1.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, 60, 5));
 		            }
 	            }else {
-	            	Item itemThrowed = this.getItemStack().getItem();
-	            	if(itemThrowed.equals(Items.BLAZE_ROD) || itemThrowed.equals(Items.BLAZE_POWDER)) {
-	            		livingentity1.setOnFireFor(1);
-	            	}
+					Item itemThrowed = this.getItemStack().getItem();
+					if(itemThrowed.equals(Items.BLAZE_ROD) || itemThrowed.equals(Items.BLAZE_POWDER)) {
+						livingentity1.setOnFireFor(1);
+					}
 	            }
 	         }
 	         
@@ -323,7 +309,7 @@ public class WeaponThrowEntity extends PersistentProjectileEntity implements Fly
 		  Entity entity = this.getOwner();
 		  
 	      if (entity == null || entity.getUuid() == entityIn.getUuid() || this.inGroundTime > (ConfigRegistry.COMMON.get().times.ticksUntilWeaponLoseOwner)) {
-	    	  super.onPlayerCollision(entityIn);
+			  super.onPlayerCollision(entityIn);
 	      }
 	   }
 	 
@@ -333,7 +319,7 @@ public class WeaponThrowEntity extends PersistentProjectileEntity implements Fly
 	      this.dealtDamage = compound.getBoolean("DealtDamage");
 	      
 	      if (compound.contains("Stack", 10)) {
-	    	  this.setItemStack(ItemStack.fromNbt(compound.getCompound("Stack")));
+			  this.setItemStack(ItemStack.fromNbt(compound.getCompound("Stack")));
 	      }
 	      
 	      this.dataTracker.set(LOYALTY_LEVEL, (byte)WeaponThrowEntity.getReturnOrLoyaltyEnchantment(this.getItemStack()));
@@ -346,7 +332,7 @@ public class WeaponThrowEntity extends PersistentProjectileEntity implements Fly
 	      compound.put("Stack", this.getDataTracker().get(COMPOUND_STACK));
 	      compound.putBoolean("DealtDamage", this.dealtDamage);
 	      if (this.lastState != null) {
-	    	  compound.put("inBlockState", NbtHelper.fromBlockState(this.lastState));
+			  compound.put("inBlockState", NbtHelper.fromBlockState(this.lastState));
 	       }
 	   }
 
@@ -376,40 +362,29 @@ public class WeaponThrowEntity extends PersistentProjectileEntity implements Fly
 				   this.onEntityHit((EntityHitResult)result);
 		         
 		      } else if (raytraceresult$type == HitResult.Type.BLOCK) {
-		    	  
-			   		BlockPos stickBlockPos = ((BlockHitResult)result).getBlockPos();
-			   		BlockState state = this.world.getBlockState(stickBlockPos);
-			   		
-			   		
-			   		
-			   		/*!WeaponThrowConfig.COMMON.blackList.get().contains(state.getBlock()) && */
-			   		
-			   		if(!state.getBlock().equals(Blocks.BEDROCK) && this.shouldDestroy()) {
-			   			
-				        	 boolean canBreak = ConfigRegistry.COMMON.get().interactions.canBreakBlocks;
-				        	 
-				        	 boolean canHarvest = this.getItemStack().isSuitableFor(state) && canBreak;
-				        	 
-				        	 if(canHarvest) {
-				        		 
-				        		 if(!world.isClient && this.lastState == null) {
-				        			 this.setDestroyedBlock(stickBlockPos);
-				        		 }
-				        	 }
-		   			}
-			   		
-			   		this.onBlockHit((BlockHitResult)result);
+				  BlockPos stickBlockPos = ((BlockHitResult)result).getBlockPos();
+				  BlockState state = this.getWorld().getBlockState(stickBlockPos);
+					   if(!state.getBlock().equals(Blocks.BEDROCK) && this.shouldDestroy()) {
+						   boolean canBreak = ConfigRegistry.COMMON.get().interactions.canBreakBlocks;
+
+						   boolean canHarvest = this.getItemStack().isSuitableFor(state) && canBreak;
+							 if(canHarvest) {
+								 if(!this.getWorld().isClient && this.lastState == null) {
+									 this.setDestroyedBlock(stickBlockPos);
+								 }
+
+								 }
+							 }
+							 this.onBlockHit((BlockHitResult)result);
 		      }
 		   }
-	
-
 
 	   @Override
 	   protected void onBlockHit(BlockHitResult blockHitResult) {
-		      this.lastState = this.world.getBlockState(blockHitResult.getBlockPos());
+		      this.lastState = this.getWorld().getBlockState(blockHitResult.getBlockPos());
 		      Vec3d Vec3d = blockHitResult.getPos().subtract(this.getX(), this.getY(), this.getZ());
 		      this.setVelocity(Vec3d);
-		      Vec3d Vec3d1 = Vec3d.normalize().multiply((double)0.05F);
+		      Vec3d Vec3d1 = Vec3d.normalize().multiply(0.05F);
 		      this.setPos(this.getX() - Vec3d1.x, this.getY() - Vec3d1.y, this.getZ() - Vec3d1.z);
 		      
 		      SoundEvent event = SoundEvents.ITEM_TRIDENT_HIT_GROUND;
@@ -433,28 +408,22 @@ public class WeaponThrowEntity extends PersistentProjectileEntity implements Fly
 	   void applyBounce() {
 
 		      if(this.inGround && this.getItemStack().getItem() instanceof BlockItem ) {
-		    	  
-		    	  if(!(Math.abs(this.getVelocity().x) < 0.05 && Math.abs(this.getVelocity().z) < 0.05)) { 
-		    		   
-		    		  Vec3d vec3 = this.getVelocity().multiply(0.9F);
-		    		  
-		    		  BlockPos landingPos = getLandingPos();
+				  if(!(Math.abs(this.getVelocity().x) < 0.05 && Math.abs(this.getVelocity().z) < 0.05)) {
 
-		    		   if(!this.world.getBlockState(landingPos.down()).isAir() || !this.world.getBlockState(landingPos.up()).isAir()) {
-		    			   this.setVelocity(vec3.x, -vec3.y, vec3.z);
-		    		   }
-		    		   else if(!this.world.getBlockState(landingPos.west()).isAir() || !this.world.getBlockState(landingPos.east()).isAir()){
-		    			   this.setVelocity(-vec3.x, vec3.y, vec3.z);
-		    		   } 
-		    		   else if(!this.world.getBlockState(landingPos.north()).isAir() || !this.world.getBlockState(landingPos.south()).isAir()){
-		    			   this.setVelocity(vec3.x, vec3.y, -vec3.z);
-		    		   }
-		    		   
-		    		   this.counterClockwiseBounce = !this.counterClockwiseBounce;
+					  Vec3d vec3 = this.getVelocity().multiply(0.9F);
+					  BlockPos landingPos = getSteppingPos();
 
-		    		   
-				       this.inGround = false;
-		    	  }
+					  if(!this.getWorld().getBlockState(landingPos.down()).isAir() || !this.getWorld().getBlockState(landingPos.up()).isAir()) {
+						  this.setVelocity(vec3.x, -vec3.y, vec3.z);
+					  }
+					  else if(!this.getWorld().getBlockState(landingPos.west()).isAir() || !this.getWorld().getBlockState(landingPos.east()).isAir()){
+						  this.setVelocity(-vec3.x, vec3.y, vec3.z);
+					  }
+					  else if(!this.getWorld().getBlockState(landingPos.north()).isAir() || !this.getWorld().getBlockState(landingPos.south()).isAir()){
+						  this.setVelocity(vec3.x, vec3.y, -vec3.z);
+					  }
+					  this.counterClockwiseBounce = !this.counterClockwiseBounce;
+				       this.inGround = false;}
 		      }
 	   }
 	   
@@ -462,41 +431,35 @@ public class WeaponThrowEntity extends PersistentProjectileEntity implements Fly
 		public ItemStack getStack() {
 			return this.getItemStack();
 		}
-		
-		
+
 		@Override
-		public Packet<?> createSpawnPacket() {
+		public Packet<ClientPlayPacketListener> createSpawnPacket() {
 			return super.createSpawnPacket();
-			//return EntitySpawnPacket.create(this);
 		}
 		
 		public void doInteractions(Runnable action) {
-			ItemStack originalStack = ((PlayerEntity)this.getOwner()).getStackInHand(Hand.MAIN_HAND);
+			ItemStack originalStack = ((PlayerEntity) Objects.requireNonNull(this.getOwner())).getStackInHand(Hand.MAIN_HAND);
 
 			((PlayerEntity) this.getOwner()).setStackInHand(Hand.MAIN_HAND, this.getItemStack());
 			
-			
 			action.run();
-			
-			//((PlayerEntity) this.getOwner()).setStackInHand(Hand.MAIN_HAND, originalStack);
-			
+
 			ItemStack newStack = ((PlayerEntity) this.getOwner()).getStackInHand(Hand.MAIN_HAND);
 
 			if (!newStack.isEmpty()) {
 				((PlayerEntity) this.getOwner()).setStackInHand(Hand.MAIN_HAND, originalStack);
 			} else {
 				
-				this.world.playSound(null, this.getBlockPos(), SoundEvents.ENTITY_ITEM_BREAK, SoundCategory.AMBIENT, 0.8F, 10F);
+				this.getWorld().playSound(null, this.getBlockPos(), SoundEvents.ENTITY_ITEM_BREAK, SoundCategory.AMBIENT, 0.8F, 10F);
 				
-				this.spawnItemParticles(this.getItemStack(), 5);
+				this.spawnItemParticles(this.getItemStack());
 				
 				this.remove(RemovalReason.DISCARDED);
 			}
-	           
 		}
 		   
-		private void spawnItemParticles(ItemStack stack, int count) {
-			for(int i = 0; i < count; ++i) {
+		private void spawnItemParticles(ItemStack stack) {
+			for(int i = 0; i < 5; ++i) {
 				Vec3d vec3d = new Vec3d(((double)this.random.nextFloat() - 0.5D) * 0.1D, Math.random() * 0.1D + 0.1D, 0.0D);
 				vec3d = vec3d.rotateX(-this.getPitch() * 0.017453292F);
 				vec3d = vec3d.rotateY(-this.getYaw() * 0.017453292F);
@@ -505,12 +468,11 @@ public class WeaponThrowEntity extends PersistentProjectileEntity implements Fly
 				vec3d2 = vec3d2.rotateX(-this.getPitch() * 0.017453292F);
 				vec3d2 = vec3d2.rotateY(-this.getYaw() * 0.017453292F);
 				vec3d2 = vec3d2.add(this.getX(), this.getEyeY(), this.getZ());
-				 if (this.world instanceof ServerWorld) //Forge: Fix MC-2518 spawnParticle is nooped on server, need to use server specific variant
-		             ((ServerWorld)this.world).spawnParticles(new ItemStackParticleEffect(ParticleTypes.ITEM, stack),  vec3d2.x, vec3d2.y, vec3d2.z, 1, vec3d.x, vec3d.y + 0.05D, vec3d.z, 0.0D);
+				 if (this.getWorld() instanceof ServerWorld) //Forge: Fix MC-2518 spawnParticle is nooped on server, need to use server specific variant
+		             ((ServerWorld) this.getWorld()).spawnParticles(new ItemStackParticleEffect(ParticleTypes.ITEM, stack),  vec3d2.x, vec3d2.y, vec3d2.z, 1, vec3d.x, vec3d.y + 0.05D, vec3d.z, 0.0D);
 		         else
-				this.world.addParticle(new ItemStackParticleEffect(ParticleTypes.ITEM, stack), vec3d2.x, vec3d2.y, vec3d2.z, vec3d.x, vec3d.y + 0.05D, vec3d.z);
+				this.getWorld().addParticle(new ItemStackParticleEffect(ParticleTypes.ITEM, stack), vec3d2.x, vec3d2.y, vec3d2.z, vec3d.x, vec3d.y + 0.05D, vec3d.z);
 			}
-
 		}
 		
 		public static int getReturnOrLoyaltyEnchantment(ItemStack stack) {
@@ -521,10 +483,7 @@ public class WeaponThrowEntity extends PersistentProjectileEntity implements Fly
 		
 		@Environment(EnvType.CLIENT)
 		public float getRotationAnimation(float partialTicks) {
-		    if(!this.inGround) {
-		    	clientSideRotation = (this.counterClockwiseBounce? 1:-1)*(this.age+partialTicks)*50F;
-		   	}
+		    if(!this.inGround) {clientSideRotation = (this.counterClockwiseBounce? 1:-1)*(this.age+partialTicks)*50F;}
 		    return this.clientSideRotation;
 		}
-
 }

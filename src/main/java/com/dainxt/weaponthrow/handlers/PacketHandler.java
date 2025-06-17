@@ -36,9 +36,8 @@ public class PacketHandler {
 	}
 	
 	public static void sendToAll(Entity entity, BasePacket packet) {
-		for (ServerPlayerEntity player : PlayerLookup.tracking((ServerWorld) entity.world, entity.getBlockPos())) {
+		for (ServerPlayerEntity player : PlayerLookup.tracking((ServerWorld) entity.getWorld(), entity.getBlockPos())) {
             ServerPlayNetworking.send(player, packet.getIdentifier(), packet.getBuf());
         }
 	}
-	
 }

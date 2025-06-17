@@ -1,0 +1,18 @@
+[versions]
+minecraft = "1.20.1"
+yarn= "1.20.1+build.10"
+fabricloader= "0.16.14"
+fabric="0.91.0+1.20.1"
+
+[libraries]
+minecraft = { module = "com.mojang:minecraft", version.ref = "minecraft" }
+yarn = { module = "net.fabricmc:yarn", version.ref = "yarn" }
+fabricloader = { module = "net.fabricmc:fabric-loader", version.ref = "fabricloader" }
+fabric = { module = "net.fabricmc.fabric-api:fabric-api", version.ref = "fabric" }
+
+# If you have multiple similar dependencies, you can declare a dependency bundle and reference it on the build script with "libs.bundles.example".
+[bundles]
+fabricapi = ["fabricloader", "fabric"]
+
+[plugins]
+loom = { id = "fabric-loom", version = "1.10-SNAPSHOT" }

@@ -2,7 +2,6 @@ package com.dainxt.weaponthrow.packets;
 
 import java.util.UUID;
 
-import com.dainxt.weaponthrow.WeaponThrow;
 import com.dainxt.weaponthrow.handlers.PacketHandler;
 
 import io.netty.buffer.Unpooled;
@@ -11,20 +10,25 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
-import net.minecraft.network.Packet;
+import net.minecraft.network.packet.Packet;
 import net.minecraft.network.PacketByteBuf;
-import net.minecraft.util.Identifier;
+import net.minecraft.registry.Registries;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.registry.Registry;
 
+
+/**
+ * changes:
+ * Registry.TYPE_IDENT -> Registries.TYPE_IDENT
+ * net.minecraft.network.Packet -> net.minecraft.network.packet.Packet
+ */
 public class EntitySpawnPacket {
 	
 	public static Packet<?> create(Entity e) {
-		if (e.world.isClient)
+		if (e.getWorld().isClient)
 			throw new IllegalStateException("SpawnPacketUtil.create called on the logical client!");
 		PacketByteBuf byteBuf = new PacketByteBuf(Unpooled.buffer());
-		byteBuf.writeVarInt(Registry.ENTITY_TYPE.getRawId(e.getType()));
+		byteBuf.writeVarInt(Registries.ENTITY_TYPE.getRawId(e.getType()));
 		byteBuf.writeUuid(e.getUuid());
 		byteBuf.writeVarInt(e.getId());
  
@@ -113,7 +117,7 @@ public class EntitySpawnPacket {
 	
 	public static void register() {
 		ClientPlayNetworking.registerGlobalReceiver(PacketHandler.SPAWN_PACKET, (client, handler, buf, responseSender) -> {
-			EntityType<?> et = Registry.ENTITY_TYPE.get(buf.readVarInt());
+			EntityType<?> et = Registries.ENTITY_TYPE.get(buf.readVarInt());
 			UUID uuid = buf.readUuid();
 			int entityId = buf.readVarInt();
 			Vec3d pos = EntitySpawnPacket.PacketBufUtil.readVec3d(buf);
@@ -124,8 +128,8 @@ public class EntitySpawnPacket {
 					throw new IllegalStateException("Tried to spawn entity in a null world!");
 				Entity e = et.create(MinecraftClient.getInstance().world);
 				if (e == null)
-					throw new IllegalStateException("Failed to create instance of entity \"" + Registry.ENTITY_TYPE.getId(et) + "\"!");
-				e.updateTrackedPosition(pos);
+					throw new IllegalStateException("Failed to create instance of entity \"" + Registries.ENTITY_TYPE.getId(et) + "\"!");
+				e.updateTrackedPosition(pos.getX(),pos.getY(),pos.getZ());
 				e.setPos(pos.x, pos.y, pos.z);
 				e.setPitch(pitch);
 				e.setYaw(yaw);
