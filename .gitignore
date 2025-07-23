@@ -35,3 +35,11 @@ run/
 /minecraft/
 /minecraft/*
 /minepkg-lock.toml
+
+# build result
+**.jar
+**.war
+
+# gradle
+gradlew.bat
+gradlew

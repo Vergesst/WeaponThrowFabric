@@ -1,9 +1,8 @@
 plugins {
     alias libs.plugins.loom
     id 'maven-publish'
+    id 'org.jetbrains.kotlin.jvm'
 }
-sourceCompatibility = JavaVersion.VERSION_17
-targetCompatibility = JavaVersion.VERSION_17
 
 archivesBaseName = project.archives_base_name
 version = project.version
@@ -12,6 +11,7 @@ group = project.maven_group
 repositories {
     maven { url "https://maven.shedaniel.me/" }
     maven { url = "https://maven.terraformersmc.com/"}
+    mavenCentral()
 }
 
 dependencies {
@@ -27,8 +27,9 @@ dependencies {
     modCompileOnly modRuntimeOnly ("com.terraformersmc:modmenu:${project.mod_menu_version}") {
         exclude group: "net.fabricmc.fabric-api"
     }
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
 
-    }
+}
 
 processResources {
 //    inputs.property "version", version
@@ -74,4 +75,7 @@ publishing {
         }
     }
     repositories {}
+}
+kotlin {
+    jvmToolchain(17)
 }
