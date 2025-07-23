@@ -169,7 +169,7 @@ class WeaponThrowEntity(type: EntityType<out WeaponThrowEntity>, worldIn: World)
     }
 
     // ??
-    fun tick() {
+    override fun tick() {
         if(this.inGroundTime > 4 && !this.dealtDamage) {
             this.dealtDamage = true
         }
