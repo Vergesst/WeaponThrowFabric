@@ -27,4 +27,6 @@ object EntityRegistry {
             .dimensions(EntityDimensions.fixed(0.5f, 0.5f))
             .build()
     )
+
+    fun registerEntities() {}
 }

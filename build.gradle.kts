@@ -32,6 +32,10 @@ loom {
             sourceSet("client")
         }
     }
+
+    mixin {
+        defaultRefmapName.set()
+    }
 }
 
 fabricApi {

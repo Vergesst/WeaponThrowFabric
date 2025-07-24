@@ -1,9 +1,13 @@
 {
   "required": true,
   "minVersion": "0.8",
-  "package": "vergisst.minecraftmod.weaponthrowlite.mixin.client",
+  "package": "vergisst.minecraftmod.weaponthrowlite.client.mixins",
   "compatibilityLevel": "JAVA_17",
   "client": [
+    "ClientPlayerEntityMixin",
+    "HeldItemRendererMixin",
+    "HeldItemRendererMixin",
+    "AbstractClientPlayerEntityMixin"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -70,7 +70,7 @@ class WeaponThrowConfig: ConfigData {
         @CollapsibleObject
         var tools: ToolMultipliers = ToolMultipliers()
 
-        inner class ToolMultipliers : ConfigData {
+        class ToolMultipliers : ConfigData {
             var pickaxeMultiplier = 0.8
             var axeMultiplier = 1.2
             var swordMultiplier = 1.0
@@ -81,7 +81,7 @@ class WeaponThrowConfig: ConfigData {
         @CollapsibleObject
         var damages: DamageMultipliers = DamageMultipliers()
 
-        inner class DamageMultipliers : ConfigData {
+        class DamageMultipliers : ConfigData {
             var baseDamageMultiplier = 0.25
             var stackDamageMultiplier = 0.0
             var modifiedDamageMultiplier = 0.50
@@ -90,7 +90,7 @@ class WeaponThrowConfig: ConfigData {
         @CollapsibleObject
         var velocities: VelocityMultipliers = VelocityMultipliers()
 
-        inner class VelocityMultipliers : ConfigData {
+        class VelocityMultipliers : ConfigData {
             var baseVelocityMultiplier = 0.25
             var stackVelocityMultiplier = 0.005
             var modifiedVelocityMultiplier = 0.4
@@ -99,7 +99,7 @@ class WeaponThrowConfig: ConfigData {
         @CollapsibleObject
         var exhaustions: ExhaustionMultipliers = ExhaustionMultipliers()
 
-        inner class ExhaustionMultipliers : ConfigData {
+        class ExhaustionMultipliers : ConfigData {
             var baseExhaustionMultiplier = 0.075
             var stackExhaustionMultiplier = 0.01
             var modifiedExhaustionMultiplier = 2.0

@@ -13,8 +13,7 @@ import vergisst.minecraftmod.weaponthrowlite.events.OnStartPlayerTick
 
 @Mixin(PlayerEntity::class)
 abstract class PlayerEntityMixin: IPlayerEntityMixin {
-    // do not use lateinit here
-    var throwPower = PlayerThrowData(this as Any as PlayerEntity)
+    private var throwPower: PlayerThrowData = PlayerThrowData(this as Object as PlayerEntity)
 
     override fun setThrowPower(value: PlayerThrowData) {
         throwPower = value
@@ -25,7 +24,10 @@ abstract class PlayerEntityMixin: IPlayerEntityMixin {
     }
 
     @Inject(at = [At("HEAD")], method = ["tick"])
-    private fun init(info: CallbackInfo) {
-        OnStartPlayerTick.EVENT.invoker().interact(this as Any as PlayerEntity)
+    fun init(info: CallbackInfo) {
+//		throwPower =
+        OnStartPlayerTick.EVENT.invoker().interact(this as Object as PlayerEntity)
+
+//		println("Interface Path is ${IPlayerEntityMixin::class.java.`package`.name}")
     }
 }

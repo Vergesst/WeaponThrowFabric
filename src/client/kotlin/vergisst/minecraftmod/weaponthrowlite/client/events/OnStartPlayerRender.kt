@@ -7,10 +7,11 @@ import net.minecraft.entity.player.PlayerEntity
 interface OnStartPlayerRender {
     fun interact(render: PlayerEntityRenderer, entity: PlayerEntity)
 
-    val EVENT
-        get() = EventFactory.createArrayBacked(
-            OnStartPlayerRender::class.java,
-            { listeners ->
+    companion object {
+        val EVENT
+            get() = EventFactory.createArrayBacked(
+                OnStartPlayerRender::class.java
+            ) { listeners ->
                 object : OnStartPlayerRender {
                     override fun interact(render: PlayerEntityRenderer, entity: PlayerEntity) {
                         for (listener in listeners) {
@@ -19,5 +20,5 @@ interface OnStartPlayerRender {
                     }
                 }
             }
-        )
+    }
 }

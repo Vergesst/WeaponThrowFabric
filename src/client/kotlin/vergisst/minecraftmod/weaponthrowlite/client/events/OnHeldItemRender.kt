@@ -24,10 +24,11 @@ interface OnHeldItemRender {
         light: Int
     )
 
-    val EVENT
-        get() = EventFactory.createArrayBacked(
-            OnHeldItemRender::class.java,
-            { listeners ->
+    companion object {
+        val EVENT
+            get() = EventFactory.createArrayBacked(
+                OnHeldItemRender::class.java
+            ) { listeners ->
                 object : OnHeldItemRender {
                     override fun interact(
                         renderer: HeldItemRenderer?,
@@ -43,10 +44,22 @@ interface OnHeldItemRender {
                         light: Int
                     ) {
                         for (listener in listeners) {
-                                listener.interact(renderer, player, tickDelta, pitch, hand, swingProgress, item, equipProgress, matrices, vertexConsumers, light)
+                            listener.interact(
+                                renderer,
+                                player,
+                                tickDelta,
+                                pitch,
+                                hand,
+                                swingProgress,
+                                item,
+                                equipProgress,
+                                matrices,
+                                vertexConsumers,
+                                light
+                            )
                         }
                     }
                 }
-        })
-
+            }
+    }
 }
