@@ -34,7 +34,7 @@ loom {
     }
 
     mixin {
-        defaultRefmapName.set()
+        defaultRefmapName.set("weaponthrowlite.refmap.json")
     }
 }
 
