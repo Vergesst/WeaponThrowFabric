@@ -17,11 +17,10 @@ object EntityRegistry {
         Identifier.of(Weaponthrowlite.MODID, "weaponthrow"),
         FabricEntityTypeBuilder
             .create(
-            SpawnGroup.MISC
+            SpawnGroup.MISC,
             // the closure here is alternative of ::WeaponThrowEntity in java
-        ) { world, type ->
-            WeaponThrowEntity(world, type)
-        }
+            ::WeaponThrowEntity
+        )
             .trackRangeBlocks(4)
             .trackedUpdateRate(20)
             .dimensions(EntityDimensions.fixed(0.5f, 0.5f))

@@ -2,12 +2,11 @@
   "required": true,
   "minVersion": "0.8",
   "package": "vergisst.minecraftmod.weaponthrowlite.mixins",
-  "compatibilityLevel": "JAVA_17",
+  "compatibilityLevel": "JAVA_16",
   "mixins": [
     "PlayerEntityMixin"
   ],
   "injectors": {
     "defaultRequire": 1
-  },
-  "refmap": "weaponthrowlite.refmap.json"
+  }
 }

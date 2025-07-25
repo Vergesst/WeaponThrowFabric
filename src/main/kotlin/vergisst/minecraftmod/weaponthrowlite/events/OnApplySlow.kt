@@ -9,18 +9,18 @@ interface OnApplySlow {
     companion object {
         val EVENT
             get()= EventFactory.createArrayBacked(
-                OnApplySlow::class.java,
-                { listeners: Array<OnApplySlow> ->
-                    object: OnApplySlow {
-                        override fun interact(player: PlayerEntity): Boolean {
-                            var result = false
-                            for (item in listeners) {
-                                result = item.interact(player) || result
-                            }
-
-                            return result
+                OnApplySlow::class.java
+            ) { listeners: Array<OnApplySlow> ->
+                object : OnApplySlow {
+                    override fun interact(player: PlayerEntity): Boolean {
+                        var result = false
+                        for (item in listeners) {
+                            result = item.interact(player) || result
                         }
+
+                        return result
                     }
-                })
+                }
+            }
     }
 }

@@ -29,7 +29,7 @@ class WeaponThrowConfig: ConfigData {
 
     @ConfigEntry.Category("interactions")
     @ConfigEntry.Gui.TransitiveObject
-    var interacions = Interactions()
+    var interactions = Interactions()
 
     @ConfigEntry.Category("multipliers")
     @ConfigEntry.Gui.TransitiveObject

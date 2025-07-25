@@ -12,9 +12,7 @@ object ConfigRegistry {
     fun registerConfig() {
         COMMON = AutoConfig.register(
             WeaponThrowConfig::class.java,
-//            ::GsonConfigSerializer
-        ) { config, clazz ->
-            GsonConfigSerializer(config, clazz)
-        }
+            ::GsonConfigSerializer
+        )
     }
 }

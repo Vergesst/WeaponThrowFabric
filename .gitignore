@@ -3,6 +3,7 @@
 
 # gradle config
 **.gradle
+gradle
 
 # build result
 **build

@@ -9,9 +9,9 @@ interface OnFOVUpdate {
     companion object {
         val EVENT
             get() = EventFactory.createArrayBacked(
-            OnFOVUpdate::class.java,
-            {listeners ->
-                object: OnFOVUpdate {
+            OnFOVUpdate::class.java
+            ) { listeners ->
+                object : OnFOVUpdate {
                     override fun interact(player: PlayerEntity, fov: Float): Float {
                         for (item in listeners) {
                             val result = item.interact(player, fov)
@@ -23,7 +23,7 @@ interface OnFOVUpdate {
                         return 0f
                     }
                 }
-            })
+            }
     }
 
 }

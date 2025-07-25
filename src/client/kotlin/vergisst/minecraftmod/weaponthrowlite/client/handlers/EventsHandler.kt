@@ -42,49 +42,7 @@ import kotlin.math.sign
  *  For purpose of separation of client_side code and server_side code
  */
 object EventsHandler {
-    fun registerEvents() {
-        OnStartPlayerTick.EVENT.register({ player: PlayerEntity ->
-            if (!player.world.isClient()) {
-                val cap = (player as IPlayerEntityMixin).getThrowPower()
 
-                val attacked = player.getAttackCooldownProgress(0.0f) < 1.0f
-                val cdConfig = ConfigRegistry.COMMON.get().general.notUseWhenCooldown
-
-                val changedItem = !ItemStack.areEqual(cap.getChargingStack(), player.mainHandStack)
-
-                if (attacked && cdConfig || changedItem) {
-                    cap.resetCharging()
-                }
-
-                if (cap.chargeTime > 0) {
-                    cap.chargeTime = cap.chargeTime - 1
-                }
-
-                if (cap.action == (PacketState.START) || cap.action
-                         == (PacketState.FINISH)
-                ) {
-                    PacketHandler.sendToAll(
-                        player,
-                        SPacketThrow(
-                            player.getUuid(),
-                            PlayerThrowData.getMaximumCharge(player),
-                            cap.action == (PacketState.START)
-                        )
-                    )
-
-                    if (cap.action == (PacketState.FINISH)) {
-                        cap.action = PacketState.NONE
-                    }
-                }
-            } else {
-                val cap = (player as IPlayerEntityMixin).getThrowPower()
-
-                if (cap.chargeTime > 0) {
-                    cap.chargeTime = cap.chargeTime - 1
-                }
-            }
-        } as OnStartPlayerTick?)
-    }
 
     fun onServerUpdate(playerUUID: UUID, maxChargeTime: Int, isCharging: Boolean) {
         val clientInstance = MinecraftClient.getInstance()
@@ -104,70 +62,122 @@ object EventsHandler {
     }
 
     fun registerClientEvents() {
-        OnHeldItemRender.EVENT.register({ renderer: HeldItemRenderer, player: AbstractClientPlayerEntity, tickDelta: Float, pitch: Float, hand: Hand, swingProgress: Float, item: ItemStack, equipProgress: Float, matrices: MatrixStack, vertexConsumers: VertexConsumerProvider, light: Int ->
-            val cap = (player as IPlayerEntityMixin).getThrowPower()
-            if (cap.action == (PacketState.DURING)) {
-                var preProgress = 1.0f
+//        OnHeldItemRender.EVENT.register(Object: OnHeldItemRenderer{
+//                renderer: HeldItemRenderer,
+//                player: AbstractClientPlayerEntity,
+//                tickDelta: Float,
+//                pitch: Float, hand: Hand,
+//                swingProgress: Float,
+//                item: ItemStack,
+//                equipProgress: Float,
+//                matrices: MatrixStack,
+//                vertexConsumers: VertexConsumerProvider,
+//                light: Int ->
+//
+//            val cap = (player as IPlayerEntityMixin).getThrowPower()
+//            if (cap.action == (PacketState.DURING)) {
+//                var preProgress = 1.0f
+//
+//                if (sign(cap.MAX_CHARGE.toFloat()) != 0.0f && cap.chargeTime > 0) {
+//                    // ???? MathHelper.lerp(Float, Int, Int) ---> err??????
+//                    val lerp: Float = MathHelper.lerp(tickDelta, cap.chargeTime + 1, cap.chargeTime).toFloat()
+//                    preProgress = 1f - lerp / cap.MAX_CHARGE
+//                }
+//
+//                val progress = MathHelper.clamp(preProgress, 0f, 1.0f)
+//
+//                matrices.translate(0.0, 0.0, progress * 0.50)
+//                matrices.multiply(Quaternionf().fromAxisAngleDeg(POSITIVE_Z, progress * 10.0f))
+//                matrices.multiply(Quaternionf().fromAxisAngleDeg(POSITIVE_X, progress * 10.0f))
+//            }
+//        })
 
-                if (sign(cap.MAX_CHARGE.toFloat()) != 0.0f && cap.chargeTime > 0) {
-                    // ???? MathHelper.lerp(Float, Int, Int) ---> err??????
-                    val lerp: Float = MathHelper.lerp(tickDelta, cap.chargeTime + 1, cap.chargeTime).toFloat()
-                    preProgress = 1f - lerp / cap.MAX_CHARGE
+        OnHeldItemRender.EVENT.register(object : OnHeldItemRender {
+            override fun interact(
+                renderer: HeldItemRenderer?,
+                player: AbstractClientPlayerEntity?,
+                tickDelta: Float,
+                pitch: Float,
+                hand: Hand?,
+                swingProgress: Float,
+                item: ItemStack?,
+                equipProgress: Float,
+                matrices: MatrixStack?,
+                vertexConsumers: VertexConsumerProvider?,
+                light: Int
+            ) {
+                // 在这里放置你原来的 Lambda 表达式中的逻辑
+                // 确保 player 不为 null 且可以安全转换为 IPlayerEntityMixin
+                if (player == null) return // 或者根据需要处理 null 情况
+
+                val cap = (player as IPlayerEntityMixin).getThrowPower()
+                if (cap.action == PacketState.DURING) {
+                    var preProgress = 1.0f
+
+                    // 确保 MathHelper.lerp 的参数类型正确，如之前讨论的
+                    if (cap.MAX_CHARGE.toFloat() != 0.0f && cap.chargeTime > 0) {
+                        val lerp: Float = MathHelper.lerp(tickDelta, (cap.chargeTime + 1).toFloat(), cap.chargeTime.toFloat())
+                        preProgress = 1f - lerp / cap.MAX_CHARGE
+                    }
+
+                    val progress = MathHelper.clamp(preProgress, 0f, 1.0f)
+
+                    // 确保 matrices 不为 null
+                    matrices?.apply { // 使用安全调用和作用域函数
+                        translate(0.0, 0.0, progress * 0.50)
+                        multiply(Quaternionf().fromAxisAngleDeg(POSITIVE_Z, progress * 10.0f))
+                        multiply(Quaternionf().fromAxisAngleDeg(POSITIVE_X, progress * 10.0f))
+                    }
                 }
-
-                val progress = MathHelper.clamp(preProgress, 0f, 1.0f)
-
-                matrices.translate(0.0, 0.0, progress * 0.50)
-                //				matrices.multiply(Vec3f.POSITIVE_Z.getDegreesQuaternion(progress * 10.0F));
-    //				matrices.multiply(Vec3f.POSITIVE_X.getDegreesQuaternion(progress * 40.0F));
-                matrices.multiply(Quaternionf().fromAxisAngleDeg(POSITIVE_Z, progress * 10.0f))
-                matrices.multiply(Quaternionf().fromAxisAngleDeg(POSITIVE_X, progress * 10.0f))
             }
-        } as OnHeldItemRender?)
+        })
 
-        OnStartPlayerRender.EVENT.register({ renderer: PlayerEntityRenderer, player: PlayerEntity ->
-            val cap = (player as IPlayerEntityMixin).getThrowPower()
-            if (cap.action == (PacketState.DURING)) {
-                if (player is AbstractClientPlayerEntity) {
-                    val hand = player.mainArm
-                    if (hand == Arm.RIGHT) renderer.getModel().rightArmPose = BipedEntityModel.ArmPose.THROW_SPEAR
-                    else renderer.getModel().leftArmPose = BipedEntityModel.ArmPose.THROW_SPEAR
+        OnStartPlayerRender.EVENT.register(object: OnStartPlayerRender {
+            override fun interact(render: PlayerEntityRenderer, entity: PlayerEntity) {
+                val cap = (entity as IPlayerEntityMixin).getThrowPower()
+                if (cap.action == PacketState.DURING) {
+                    if (entity is AbstractClientPlayerEntity) { // player 已经是 PlayerEntity，这里检查 AbstractClientPlayerEntity
+                        val hand = entity.mainArm
+                        if (hand == Arm.RIGHT) render.model.rightArmPose = BipedEntityModel.ArmPose.THROW_SPEAR
+                        else render.model.leftArmPose = BipedEntityModel.ArmPose.THROW_SPEAR
+                    }
                 }
             }
-        } as OnStartPlayerRender)
+        })
 
-        OnApplySlow.EVENT.register({ player: PlayerEntity ->
-            val cap = (player as IPlayerEntityMixin).getThrowPower()
-            cap.action == (PacketState.DURING)
-        } as OnApplySlow)
+        OnApplySlow.EVENT.register(object: OnApplySlow {
+            override fun interact(player: PlayerEntity): Boolean {
+                val cap = (player as IPlayerEntityMixin).getThrowPower()
 
-        OnFOVUpdate.EVENT.register({ player: PlayerEntity, amount: Float ->
-            val cap = (player as IPlayerEntityMixin).getThrowPower()
-            val maxChargeTime = cap.MAX_CHARGE
-
-            val chargeTime: Int = cap.chargeTime
-
-            val isCharging: Boolean = cap.action == (PacketState.DURING)
-            var f: Float = amount
-
-            if (isCharging) {
-                var f1 = 1.0f
-
-                if (sign(maxChargeTime.toFloat()) != 0.0f && chargeTime > 0) {
-                    val lerp = MathHelper.lerp(MinecraftClient.getInstance().tickDelta, chargeTime + 1, chargeTime)
-                        .toFloat()
-                    f1 = MathHelper.clamp(1.0f - lerp / maxChargeTime, 0f, 1.0f)
-                }
-                f1 = if (f1 > 1.0f) {
-                    1.0f
-                } else {
-                    f1 * f1
-                }
-
-                f *= 1.0f + f1 * 0.15f
+                return cap.action == PacketState.DURING
             }
-            f
-        } as OnFOVUpdate)
+        })
+
+        OnFOVUpdate.EVENT.register(object: OnFOVUpdate {
+            override fun interact(player: PlayerEntity, fov: Float): Float {
+                val cap = (player as IPlayerEntityMixin).getThrowPower()
+                val maxChargeTime = cap.MAX_CHARGE.toDouble()
+                val chargeTime = cap.chargeTime
+                val isCharging = cap.action == PacketState.DURING
+                var f = fov
+
+                if (isCharging) {
+                    var f1 = 1.0F
+                    if (sign(maxChargeTime).toFloat() != 0.0F &&chargeTime > 0) {
+                        val lerp = MathHelper.lerp(
+                            MinecraftClient.getInstance().tickDelta,
+                            chargeTime + 1,
+                            chargeTime
+                        )
+                    }
+                    f1 = f1 * f1
+
+                    f *= 1.0F + f1 * 0.15F
+                }
+
+                return f
+            }
+        })
 
         ClientTickEvents.END_WORLD_TICK.register(ClientTickEvents.EndWorldTick { client: ClientWorld? ->
             val pressed: Boolean = KeyBindingHandler.KEYBINDING.isPressed

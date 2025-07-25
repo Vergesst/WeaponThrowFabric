@@ -6,6 +6,10 @@ import net.minecraft.util.math.MathHelper
 import vergisst.minecraftmod.weaponthrowlite.handlers.ConfigRegistry
 import vergisst.minecraftmod.weaponthrowlite.packets.PacketState
 
+/**
+ *  Casting Finished 25/07/25
+ */
+
 class PlayerThrowData(val player: PlayerEntity) {
     // client
     var MAX_CHARGE = -1

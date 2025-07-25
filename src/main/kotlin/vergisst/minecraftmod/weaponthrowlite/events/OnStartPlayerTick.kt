@@ -9,16 +9,15 @@ interface OnStartPlayerTick {
     companion object {
         val EVENT
             get() = EventFactory.createArrayBacked(
-                OnStartPlayerTick::class.java,
-                { listeners ->
-                    object: OnStartPlayerTick {
-                        override fun interact(entity: PlayerEntity) {
-                            for (listener in listeners) {
-                                listener.interact(entity)
-                            }
+                OnStartPlayerTick::class.java
+            ) { listeners ->
+                object : OnStartPlayerTick {
+                    override fun interact(entity: PlayerEntity) {
+                        for (listener in listeners) {
+                            listener.interact(entity)
                         }
                     }
                 }
-            )
+            }
     }
 }

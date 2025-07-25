@@ -14,25 +14,28 @@ import java.util.*
 //
 //}
 
+@Deprecated("Seperated design result")
 class SPacketThrow(uuid: UUID?, maxChargeTime: Int, isCharging: Boolean) : BasePacket(PacketsIdentifier.SPACKET_THROW) {
-    init {
-        buf?.writeUuid(uuid)
-        buf?.writeVarInt(maxChargeTime)
-        buf?.writeBoolean(isCharging)
-    }
+//    init {
+//        buf?.writeUuid(uuid)
+//        buf?.writeVarInt(maxChargeTime)
+//        buf?.writeBoolean(isCharging)
+//    }
+//
+//    companion object {
+//        fun register() {
+//            ClientPlayNetworking.registerGlobalReceiver(
+//                PacketsIdentifier.SPACKET_THROW,
+//                ClientPlayNetworking.PlayChannelHandler { client: MinecraftClient?, handler: ClientPlayNetworkHandler?, buf: PacketByteBuf?, responseSender: PacketSender? ->
+//                    val uuid = buf!!.readUuid()
+//                    val maxChargeTime = buf.readVarInt()
+//                    val isCharging = buf.readBoolean()
+//                    client!!.execute(Runnable {
+//                        EventsHandler.onServerUpdate(uuid, maxChargeTime, isCharging)
+//                    })
+//                })
+//        }
+//    }
 
-    companion object {
-        fun register() {
-            ClientPlayNetworking.registerGlobalReceiver(
-                PacketsIdentifier.SPACKET_THROW,
-                ClientPlayNetworking.PlayChannelHandler { client: MinecraftClient?, handler: ClientPlayNetworkHandler?, buf: PacketByteBuf?, responseSender: PacketSender? ->
-                    val uuid = buf!!.readUuid()
-                    val maxChargeTime = buf.readVarInt()
-                    val isCharging = buf.readBoolean()
-                    client!!.execute(Runnable {
-                        EventsHandler.onServerUpdate(uuid, maxChargeTime, isCharging)
-                    })
-                })
-        }
-    }
+
 }

@@ -13,12 +13,12 @@ abstract class AbstractClientPlayerEntityMixin {
 
     // Error -- 25/07/24 -- getFovMultiplier -- getFovMultiplayer
     // Vergisst is so stupid that she write a wrong name for such a simple inject point
-    @Inject(method = ["getFovMultiplier"], at = [At("RETURN")], cancellable = true)
-    fun getSpeed(info: CallbackInfoReturnable<Float>) {
-        val player = this as Object as PlayerEntity
+    @Inject(at = [At("RETURN")], method = ["getFovMultiplier"], cancellable = true)
+    private fun getSpeed(info: CallbackInfoReturnable<Float>) {
+//        val player = this as Any as PlayerEntity
 
-        val amount = info.returnValue.toFloat()
-        val result = OnFOVUpdate.Companion.EVENT.invoker().interact(player, amount)
+        val amount = info.getReturnValue()!!
+        val result = OnFOVUpdate.Companion.EVENT.invoker().interact(this as PlayerEntity, amount)
 
         info.returnValue = result
     }

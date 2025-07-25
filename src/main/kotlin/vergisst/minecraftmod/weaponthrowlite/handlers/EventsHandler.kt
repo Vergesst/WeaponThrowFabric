@@ -2,6 +2,7 @@ package vergisst.minecraftmod.weaponthrowlite.handlers
 
 import net.minecraft.entity.EquipmentSlot
 import net.minecraft.entity.attribute.EntityAttributes
+import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.item.*
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.server.world.ServerWorld
@@ -10,7 +11,9 @@ import net.minecraft.util.Hand
 import vergisst.minecraftmod.weaponthrowlite.api.IPlayerEntityMixin
 import vergisst.minecraftmod.weaponthrowlite.capabilities.PlayerThrowData
 import vergisst.minecraftmod.weaponthrowlite.entity.WeaponThrowEntity
+import vergisst.minecraftmod.weaponthrowlite.events.OnStartPlayerTick
 import vergisst.minecraftmod.weaponthrowlite.packets.PacketState
+import vergisst.minecraftmod.weaponthrowlite.packets.SPacketThrow
 import kotlin.math.sign
 
 object EventsHandler {
@@ -161,5 +164,51 @@ object EventsHandler {
         }
     }
 
-    fun registerEvents() {}
+//    fun registerEvents() {}
+
+    fun registerEvents() {
+        OnStartPlayerTick.EVENT.register(object : OnStartPlayerTick {
+            override fun interact(entity: PlayerEntity) {
+                if (!entity.world.isClient) {
+                    val cap = (entity as IPlayerEntityMixin).getThrowPower()
+
+                    val attacked = entity.getAttackCooldownProgress(0.0f) < 1.0f
+                    val cdConfig = ConfigRegistry.COMMON.get().general.notUseWhenCooldown
+
+                    // 确保 getChargingStack() 返回 ItemStack
+                    val changedItem = !ItemStack.areEqual(cap.getChargingStack(), entity.mainHandStack)
+
+                    if (attacked && cdConfig || changedItem) {
+                        cap.resetCharging()
+                    }
+
+                    if (cap.chargeTime > 0) {
+                        cap.chargeTime = cap.chargeTime - 1
+                    }
+
+                    if (cap.action == PacketState.START || cap.action == PacketState.FINISH) {
+                        PacketHandler.sendToAll(
+                            entity,
+                            SPacketThrow(
+                                entity.uuid,
+                                PlayerThrowData.getMaximumCharge(entity),
+                                cap.action == PacketState.START
+                            )
+                        )
+
+                        if (cap.action == PacketState.FINISH) {
+                            cap.action = PacketState.NONE
+                        }
+                    }
+                }
+                else {
+                    val cap = (entity as IPlayerEntityMixin).getThrowPower()
+
+                    if (cap.chargeTime > 0) {
+                        cap.chargeTime = cap.chargeTime - 1
+                    }
+                }
+            }
+        })
+    }
 }

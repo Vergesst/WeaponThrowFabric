@@ -32,10 +32,6 @@ loom {
             sourceSet("client")
         }
     }
-
-    mixin {
-        defaultRefmapName.set("weaponthrowlite.refmap.json")
-    }
 }
 
 fabricApi {
