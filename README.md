@@ -15,3 +15,8 @@ Like kill iron golem by attract them with a stick, throw your pickaxe to break a
 All of these improvements are what attracts me to continue this mod's life.
 
 What's more, if you like it, you can click a star for the [original repo](https://github.com/dainxt/weaponthrow), thank you very much!
+
+---
+<h2 styles="color: red">Well, the fist that reality throws on my face implies that perhaps rewriting something step by step will work better ....</h2>
+
+## so it comes out to be a deprecated branch... perhaps someday will be fixed?
