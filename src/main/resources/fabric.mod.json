@@ -13,10 +13,18 @@
 
   "environment": "*",
   "entrypoints": {
-    "fabric-datagen": ["vergisst.minecraftmod.weaponthrow.client.WeaponThrowDataGenerator"],
-    "client": ["vergisst.minecraftmod.weaponthrow.client.WeaponThrowClient"],
-    "main": ["vergisst.minecraftmod.weaponthrow.WeaponThrow"],
-    "modmenu": ["vergisst.minecraftmod.weaponthrow.client.ModMenuIntegration"]
+    "fabric-datagen": [
+      "com.dainxt.weaponthrow.client.WeaponThrowDataGenerator"
+    ],
+    "client": [
+      "com.dainxt.weaponthrow.client.WeaponThrowClient"
+    ],
+    "main": [
+      "com.dainxt.weaponthrow.WeaponThrow"
+    ],
+    "modmenu": [
+      "com.dainxt.weaponthrow.client.ModMenuIntegration"
+    ]
   },
 
   "mixins": [
