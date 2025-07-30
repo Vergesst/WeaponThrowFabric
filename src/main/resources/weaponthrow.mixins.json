@@ -1,18 +1,15 @@
 {
   "required": true,
   "minVersion": "0.8",
-  "package": "com.dainxt.weaponthrow.mixins",
-  "compatibilityLevel": "JAVA_16",
+  "package": "vergisst.minecraftmod.weaponthrow.mixins",
+  "compatibilityLevel": "JAVA_17",
   "mixins": [
     "PlayerEntityMixin"
   ],
-  "client": [
-    "client.ClientPlayerEntityMixin",
-    "client.HeldItemRendererMixin",
-    "client.PlayerEntityRendererMixin",
-    "client.AbstractClientPlayerEntityMixin"
-  ],
   "injectors": {
     "defaultRequire": 1
+  },
+  "overwrites": {
+    "requireAnnotations": true
   }
 }

@@ -3,44 +3,33 @@
   "id": "weaponthrow",
   "version": "${version}",
 
-  "name": "Weapon Throw",
-  "description": "Throw your items and weapons in another way",
-  "authors": [
-    "dainxt"
-  ],
-  "contact": {
-    "homepage": "https://www.curseforge.com/minecraft/mc-mods/weaponthrowlite/",
-    "sources": "https://github.com/FabricMC/fabric-example-mod"
-  },
+  "name": "WeaponThrow",
+  "description": "",
+  "authors": [],
+  "contact": {},
 
-  "license": "CC0-1.0",
+  "license": "All-Rights-Reserved",
   "icon": "assets/weaponthrow/icon.png",
 
   "environment": "*",
   "entrypoints": {
-    "main": [
-      "com.dainxt.weaponthrow.WeaponThrow"
-    ],
-    
-    "client": [
-      "com.dainxt.weaponthrow.ClientMod"
-    ],
-    
-    "modmenu": [
-      "com.dainxt.weaponthrow.ModMenuIntegration"
-    ]
+    "fabric-datagen": ["vergisst.minecraftmod.weaponthrow.client.WeaponThrowDataGenerator"],
+    "client": ["vergisst.minecraftmod.weaponthrow.client.WeaponThrowClient"],
+    "main": ["vergisst.minecraftmod.weaponthrow.WeaponThrow"],
+    "modmenu": ["vergisst.minecraftmod.weaponthrow.client.ModMenuIntegration"]
   },
+
   "mixins": [
     "weaponthrow.mixins.json"
+    ,{
+      "config": "weaponthrow.client.mixins.json",
+      "environment": "client"
+    }
   ],
 
   "depends": {
-    "fabricloader": ">=0.14.12+",
+    "fabricloader": ">=${loader_version}",
     "fabric": "*",
-    "minecraft": "1.20.1",
-    "java": ">=17"
-  },
-  "suggests": {
-    "another-mod": "*"
+    "minecraft": "${minecraft_version}"
   }
 }
