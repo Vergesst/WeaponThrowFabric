@@ -18,10 +18,9 @@ public class GroundedEdgeEnchantment extends Enchantment {
         return 25;
     }
 
-    public int getMaxEnchantability(int enchantmentLevel) {
-        return this.getMinEnchantability(enchantmentLevel) + 40;
-    }
     // Returns the maximum level that the enchantment can have.
+    public int getMaxEnchantability(int enchantmentLevel) { return 65; }
+
     public int getMaxLevel() {
         return 3;
     }

@@ -109,7 +109,12 @@ tasks.processResources {
 tasks.withType<JavaCompile>().configureEach {
     options.encoding = "UTF-8"
     // You are really a genius whose favorite type is Any? ... that's foolish
+
+    // java version -- current 17
     options.release.set(targetJvmVersion.toString().toInt())
+
+    // extra options to enable pattern matching in Java17 -- preview feature
+    options.compilerArgs.add("--enable-preview")
 }
 
 tasks.jar {

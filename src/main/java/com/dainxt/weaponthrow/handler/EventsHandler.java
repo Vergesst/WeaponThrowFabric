@@ -128,30 +128,26 @@ public class EventsHandler {
                         if(haveAttributes) {
                             baseDamage = (float) serverplayer.getAttributeValue(EntityAttributes.GENERIC_ATTACK_DAMAGE);
 
-                            int types = 0;
-                            if(stack.getItem() instanceof AxeItem) {
-                                toolMultiplier += ConfigRegistry.COMMON.get().multipliers.tools.axeMultiplier;
-                                types++;
-                            }
-                            if(stack.getItem() instanceof HoeItem) {
-                                toolMultiplier += ConfigRegistry.COMMON.get().multipliers.tools.hoeMultiplier;
-                                types++;
-                            }
-                            if(stack.getItem() instanceof PickaxeItem) {
-                                toolMultiplier += ConfigRegistry.COMMON.get().multipliers.tools.pickaxeMultiplier;
-                                types++;
-                            }
-                            if(stack.getItem() instanceof ShovelItem) {
-                                toolMultiplier += ConfigRegistry.COMMON.get().multipliers.tools.shovelMultiplier;
-                                types++;
-                            }
-                            if(stack.getItem() instanceof SwordItem) {
-                                toolMultiplier = ConfigRegistry.COMMON.get().multipliers.tools.swordMultiplier;
-                                types++;
-                            }
+                            var baseMultiplier = ConfigRegistry.COMMON.get().multipliers.tools;
 
-                            toolMultiplier/=(types>0? types : 1);
-
+                            /**
+                             *  potential opt:
+                             *  1. Map based opt
+                             *  ```java
+                             *  var itemMap = new HashMap<Key, Path of variable>
+                             *  for (var pair in itemMap.entrySet()) {
+                             *      if (pair.getKey().isInstance(item)) {xxx}
+                             *  }
+                             *  ```
+                             */
+                            toolMultiplier += switch(stack.getItem()) {
+                                case SwordItem sword -> baseMultiplier.swordMultiplier;
+                                case AxeItem axe -> baseMultiplier.axeMultiplier;
+                                case PickaxeItem pickaxe -> baseMultiplier.pickaxeMultiplier;
+                                case ShovelItem shovel -> baseMultiplier.shovelMultiplier;
+                                case HoeItem hoe -> baseMultiplier.hoeMultiplier;
+                                default -> 1.0;
+                            };
                         }
 
                         if(toolMultiplier == 0.0F) {
@@ -172,9 +168,9 @@ public class EventsHandler {
                         double totalVelocity = (baseThrow)*(1*bVelocityMul + modThrow*mVelocityMul) - (size*sVelocityMul);
                         totalVelocity*=toolMultiplier;
 
-                        double bExhaustionMul = ConfigRegistry.COMMON.get().multipliers.exhaustions.baseExhaustionMultiplier;
-                        double sExhaustionMul = ConfigRegistry.COMMON.get().multipliers.exhaustions.stackExhaustionMultiplier;
-                        double mExhaustionMul = ConfigRegistry.COMMON.get().multipliers.exhaustions.modifiedExhaustionMultiplier;
+                        double bExhaustionMul = ConfigRegistry.COMMON.get().multipliers.exhaustion.baseExhaustionMultiplier;
+                        double sExhaustionMul = ConfigRegistry.COMMON.get().multipliers.exhaustion.stackExhaustionMultiplier;
+                        double mExhaustionMul = ConfigRegistry.COMMON.get().multipliers.exhaustion.modifiedExhaustionMultiplier;
                         double totalExhaustion = (baseExhaustion)*(1*bExhaustionMul + modThrow*mExhaustionMul) + (size*sExhaustionMul);
                         totalExhaustion*=toolMultiplier;
 

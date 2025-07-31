@@ -97,7 +97,7 @@ public class WeaponThrowConfig implements ConfigData {
         }
 
         @ConfigEntry.Gui.CollapsibleObject
-        public ExhaustionMultipliers exhaustions = new ExhaustionMultipliers();
+        public ExhaustionMultipliers exhaustion = new ExhaustionMultipliers();
 
         public static class ExhaustionMultipliers implements ConfigData {
             public double baseExhaustionMultiplier = 0.075D;
@@ -111,7 +111,7 @@ public class WeaponThrowConfig implements ConfigData {
         @ConfigEntry.BoundedDiscrete(min=0,max=Integer.MAX_VALUE)
         public int despawnTime = 60*20;
 
-        public double castTimeMuliplier = 3.0D;
+        public double castTimeMultiplier = 3.0D;
 
         @ConfigEntry.BoundedDiscrete(min=0,max=Integer.MAX_VALUE)
         public int ticksUntilWeaponLoseOwner = 20*7;

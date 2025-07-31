@@ -1,12 +1,92 @@
 {
-	"weaponthrow.categories.throw": "武器投掷",
-	"weaponthrow.throw": "投掷",
-	"enchantment.weaponthrow.throw": "投掷",
-	"enchantment.weaponthrow.throw.desc": "增加武器投掷伤害",
+	"key.weaponthrow": "投掷",
+	"enchantment.weaponthrow.throw": "重掷",
+	"enchantment.weaponthrow.throw.desc": "增加投掷造成的伤害",
 	"enchantment.weaponthrow.groundededge": "撼地",
-	"enchantment.weaponthrow.groundededge.desc": "给予范围内的生物虚弱效果",
+	"enchantment.weaponthrow.groundededge.desc": "对投掷目标区域的生物附带虚弱效果",
 	"enchantment.weaponthrow.conccusion": "震荡",
-	"enchantment.weaponthrow.conccusion.desc": "给予反胃和缓慢效果",
+	"enchantment.weaponthrow.conccusion.desc": "给予范围内的生物虚弱效果",
 	"enchantment.weaponthrow.gravity": "反重力",
-	"enchantment.weaponthrow.gravity.desc": "你投出去的武器无视重力效果"
+	"enchantment.weaponthrow.gravity.desc": "你投出的武器无视重力效果",
+	"enchantment.weaponthrow.return": "回旋",
+	"enchantment.weaponthrow.return.desc": "你的投掷物会回到你身边",
+	"weaponthrow.pmmo.requirementThrowing": "投掷该武器需要 %d 战斗等级",
+	"weaponthrow.pmmo.requirementLoyalty": "使用忠诚需要 %d 战斗等级",
+
+	//Tetra Enchantment Integration
+	"tetra.improvement.enchantment/weaponthrow_throw.name": "Throw",
+	"tetra.improvement.enchantment/weaponthrow_throw.description": "增加投掷物造成的伤害",
+	"tetra.improvement.destabilized/weaponthrow_throw.name": "Destabilized: Throw",
+	"tetra.improvement.destabilized/weaponthrow_throw.description": "Reduces the effect of the Throw enchantment",
+	"tetra.improvement.enchantment/weaponthrow_groundededge.name": "Grounded Edge",
+	"tetra.improvement.enchantment/weaponthrow_groundededge.description": "Apply weakness in area",
+	"tetra.improvement.destabilized/weaponthrow_groundededge.name": "Destabilized: Grounded Edge",
+	"tetra.improvement.destabilized/weaponthrow_groundededge.description": "Reduces the effect of the Grounded Edge enchantment",
+	"tetra.improvement.enchantment/weaponthrow_conccusion.name": "Concussion",
+	"tetra.improvement.enchantment/weaponthrow_conccusion.description": "Apply nausea and slowness",
+	"tetra.improvement.destabilized/weaponthrow_conccusion.name": "Destabilized: Concussion",
+	"tetra.improvement.destabilized/weaponthrow_conccusion.description": "Reduces the effect of the Concussion enchantment",
+	"tetra.improvement.enchantment/weaponthrow_gravity.name": "Curse of Gravity",
+	"tetra.improvement.enchantment/weaponthrow_gravity.description": "Your weapon defies gravity, at a cost",
+	"tetra.improvement.enchantment/weaponthrow_return.name": "Return",
+	"tetra.improvement.enchantment/weaponthrow_return.description": "Your weapons come back",
+	"tetra.improvement.destabilized/weaponthrow_return.name": "Destabilized: Return",
+	"tetra.improvement.destabilized/weaponthrow_return.description": "Reduces the effect of the Return enchantment",
+
+	//ModMenu Gui Integration
+
+	"text.autoconfig.weaponthrow.title": "武器-投掷！ 配置页",
+
+	"text.autoconfig.weaponthrow.category.general": "通用",
+	"text.autoconfig.weaponthrow.option.general.creativeSpamming": "Creative Spamming",
+	"text.autoconfig.weaponthrow.option.general.notUseWhenCooldown": "冷却期间无法使用",
+
+	"text.autoconfig.weaponthrow.category.defaults": "默认",
+	"text.autoconfig.weaponthrow.option.defaults.baseDamageDefault": "无武器时的基础伤害",
+	// ？
+	"text.autoconfig.weaponthrow.option.defaults.velocityDefault": "无武器时的基础攻击速度",
+
+	"text.autoconfig.weaponthrow.category.enchantments": "附魔",
+	"text.autoconfig.weaponthrow.option.enchantments.enchantAllWeapons": "所有武器都可附魔",
+	"text.autoconfig.weaponthrow.option.enchantments.enableThrow": "启用‘投掷’附魔",
+	"text.autoconfig.weaponthrow.option.enchantments.enableConccusion": "启用‘震荡’附魔",
+	"text.autoconfig.weaponthrow.option.enchantments.enableGroundedEdge": "启用‘撼地’附魔",
+	"text.autoconfig.weaponthrow.option.enchantments.enableGravity": "启用‘反重力’附魔",
+	"text.autoconfig.weaponthrow.option.enchantments.enableReturn": "启用‘回旋’附魔",
+
+	"text.autoconfig.weaponthrow.category.experimental": "试验性内容",
+	"text.autoconfig.weaponthrow.option.experimental.shouldThrowItemsToo": "可以投掷任何物品",
+
+	"text.autoconfig.weaponthrow.category.interactions": "交互",
+	"text.autoconfig.weaponthrow.option.interactions.canBreakBlocks": "可以破坏方块",
+
+	"text.autoconfig.weaponthrow.category.multipliers": "乘子",
+
+	"text.autoconfig.weaponthrow.option.multipliers.tools": "工具乘子",
+	"text.autoconfig.weaponthrow.option.multipliers.tools.pickaxeMultiplier": "Pickaxe Multiplier",
+	"text.autoconfig.weaponthrow.option.multipliers.tools.axeMultiplier": "Axe Multiplier",
+	"text.autoconfig.weaponthrow.option.multipliers.tools.swordMultiplier": "Sword Multiplier",
+	"text.autoconfig.weaponthrow.option.multipliers.tools.hoeMultiplier": "Hoe Multiplier",
+	"text.autoconfig.weaponthrow.option.multipliers.tools.shovelMultiplier": "Shovel Multiplier",
+
+	"text.autoconfig.weaponthrow.option.multipliers.damages": "Damage Multipliers",
+	"text.autoconfig.weaponthrow.option.multipliers.damages.baseDamageMultiplier": "Base Damage Multiplier",
+	"text.autoconfig.weaponthrow.option.multipliers.damages.stackDamageMultiplier": "Stack Damage Multiplier",
+	"text.autoconfig.weaponthrow.option.multipliers.damages.modifiedDamageMultiplier": "Modified Damage Multiplier",
+
+	"text.autoconfig.weaponthrow.option.multipliers.velocities": "Velocity Multipliers",
+	"text.autoconfig.weaponthrow.option.multipliers.velocities.baseVelocityMultiplier": "Base Velocity Multiplier",
+	"text.autoconfig.weaponthrow.option.multipliers.velocities.stackVelocityMultiplier": "Stack Velocity Multiplierr",
+	"text.autoconfig.weaponthrow.option.multipliers.velocities.modifiedVelocityMultiplier": "Modified Velocity Multiplier",
+
+	"text.autoconfig.weaponthrow.option.multipliers.exhaustions": "Exhaustion Multipliers",
+	"text.autoconfig.weaponthrow.option.multipliers.exhaustions.baseExhaustionMultiplier": "Base Exhaustion Multiplier",
+	"text.autoconfig.weaponthrow.option.multipliers.exhaustions.stackExhaustionMultiplier": "Stack Exhaustion Multiplier",
+	"text.autoconfig.weaponthrow.option.multipliers.exhaustions.modifiedExhaustionMultiplier": "Modified Exhaustion Multiplier",
+
+	"text.autoconfig.weaponthrow.category.times": "Times",
+	"text.autoconfig.weaponthrow.option.times.despawnTime": "Despawn Time",
+	"text.autoconfig.weaponthrow.option.times.castTimeMuliplier": "Cast Time Multiplier",
+	"text.autoconfig.weaponthrow.option.times.ticksUntilWeaponLoseOwner": "Ticks until weapon lose owner"
+
 }
