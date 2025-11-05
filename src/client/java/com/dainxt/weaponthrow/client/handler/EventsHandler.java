@@ -1,5 +1,7 @@
 package com.dainxt.weaponthrow.client.handler;
 
+import com.dainxt.weaponthrow.client.handler.PacketHandler;
+import com.dainxt.weaponthrow.packets.C2SThrowPacket;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
@@ -12,7 +14,6 @@ import com.dainxt.weaponthrow.Interface.IPlayerEntityMixin;
 import com.dainxt.weaponthrow.capabilities.PlayerThrowData;
 import com.dainxt.weaponthrow.client.events.OnHeldItemRender;
 import com.dainxt.weaponthrow.client.events.OnStartPlayerRender;
-import com.dainxt.weaponthrow.packets.CPacketThrow;
 import com.dainxt.weaponthrow.events.OnApplySlow;
 import com.dainxt.weaponthrow.events.OnFOVUpdate;
 import com.dainxt.weaponthrow.packets.State;
@@ -61,8 +62,6 @@ public class EventsHandler {
                 float progress = MathHelper.clamp(preProgress, 0.F, 1.0F);
 
                 matrices.translate(0.0D, 0.0F, progress * 0.50F);
-//				matrices.multiply(Vec3f.POSITIVE_Z.getDegreesQuaternion(progress * 10.0F));
-//				matrices.multiply(Vec3f.POSITIVE_X.getDegreesQuaternion(progress * 40.0F));
                 matrices.multiply(new Quaternionf().fromAxisAngleDeg(POSITIVE_Z, progress * 10.0f));
                 matrices.multiply(new Quaternionf().fromAxisAngleDeg(POSITIVE_X, progress * 10.0f));
             }
@@ -122,10 +121,10 @@ public class EventsHandler {
             boolean pressed = KeyBindingHandler.KEYBINDING.isPressed();
 
             if (pressed) {
-                PacketHandler.sendToServer(new CPacketThrow(EventsHandler.wasPressed ? State.DURING: State.START));
+                PacketHandler.sendToServer(new C2SThrowPacket(EventsHandler.wasPressed ? State.DURING: State.START));
                 EventsHandler.wasPressed = true;
             }else if(EventsHandler.wasPressed){
-                PacketHandler.sendToServer(new CPacketThrow(State.FINISH));
+                PacketHandler.sendToServer(new C2SThrowPacket(State.FINISH));
                 EventsHandler.wasPressed = false;
             }
         });

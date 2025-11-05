@@ -1,35 +1,35 @@
 package com.dainxt.weaponthrow.handler;
 
+import com.dainxt.weaponthrow.packets.PacketIdentifiers;
+import com.dainxt.weaponthrow.packets.State;
+import net.fabricmc.fabric.api.networking.v1.FabricPacket;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.Entity;
-import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
-import com.dainxt.weaponthrow.packets.BasePacket;
-import com.dainxt.weaponthrow.packets.CPacketThrow;
-
 
 public class PacketHandler {
     public static void registerServerListener() {
-        CPacketThrow.register();
+        ServerPlayNetworking.registerGlobalReceiver(
+                PacketIdentifiers.CLIENT_PACKET_THROW,
+                (
+                        server,
+                        player,
+                        handler,
+                        buf,
+                        responseSender
+                ) -> {
+                    var action = State.fromByte(buf.readByte());
+                    server.execute(() -> {
+                        EventsHandler.onThrowItem(player, action);
+                    });
+                }
+        );
     }
 
-    public static void sendToAllTracking(Entity entity, BasePacket packet) {
-        if (entity.getWorld() instanceof ServerWorld) {
-            // back to player
-            if (entity instanceof ServerPlayerEntity self) {
-                ServerPlayNetworking.send(self, packet.getIdentifier(), packet.getBuf());
-            }
-            // all the player tracing entity
-            for (ServerPlayerEntity player : PlayerLookup.tracking((ServerWorld) entity.getWorld(), entity.getBlockPos())) {
-                ServerPlayNetworking.send(player, packet.getIdentifier(), packet.getBuf());
-            }
-        }
-    }
-
-    public static void sendToAll(Entity entity, BasePacket packet) {
-        for (ServerPlayerEntity player : PlayerLookup.tracking((ServerWorld) entity.getWorld(), entity.getBlockPos())) {
-            ServerPlayNetworking.send(player, packet.getIdentifier(), packet.getBuf());
+    public static void sendToAll(Entity entity, FabricPacket packet) {
+        for (var player : PlayerLookup.tracking((ServerWorld) entity.getWorld(), entity.getBlockPos())) {
+            ServerPlayNetworking.send(player, packet);
         }
     }
 }

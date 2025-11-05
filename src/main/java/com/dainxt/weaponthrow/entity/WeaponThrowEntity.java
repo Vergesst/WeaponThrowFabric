@@ -1,5 +1,6 @@
 package com.dainxt.weaponthrow.entity;
 
+import com.dainxt.weaponthrow.config.WeaponThrowConfig;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.api.EnvironmentInterface;
@@ -52,8 +53,6 @@ import java.util.Objects;
         itf = FlyingItemEntity.class
 )
 public class WeaponThrowEntity extends PersistentProjectileEntity implements FlyingItemEntity{
-
-
     private float clientSideRotation = 0;
     private boolean counterClockwiseBounce = true;
 
@@ -61,6 +60,8 @@ public class WeaponThrowEntity extends PersistentProjectileEntity implements Fly
     private static final TrackedData<NbtCompound> COMPOUND_STACK = DataTracker.registerData(WeaponThrowEntity.class, TrackedDataHandlerRegistry.NBT_COMPOUND);
     private static final TrackedData<BlockPos> DESTROYED_BLOCK = DataTracker.registerData(WeaponThrowEntity.class, TrackedDataHandlerRegistry.BLOCK_POS);
     private static final TrackedData<Boolean> SHOULD_DESTROY = DataTracker.registerData(WeaponThrowEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
+    private static final ItemStack DEFAULT_STACK = new ItemStack(Items.STONE_AXE);
+    private static final WeaponThrowConfig.Enchantments ENCHANTMENT_CONFIG = ConfigRegistry.COMMON.get().enchantments;
 
     private boolean dealtDamage = false;
     private float attackDamage;
@@ -70,11 +71,17 @@ public class WeaponThrowEntity extends PersistentProjectileEntity implements Fly
     private BlockState lastState;
 
     public WeaponThrowEntity(EntityType<? extends WeaponThrowEntity> type, World worldIn) {
-        super(type, worldIn);
+        super(type, worldIn, DEFAULT_STACK);
     }
 
-    public WeaponThrowEntity(World worldIn, LivingEntity thrower, boolean canDestroy , float attackDamage, ItemStack thrownStackIn) {
-        super(EntityRegistry.WEAPONTHROW, thrower, worldIn);
+    public WeaponThrowEntity(
+            World worldIn,
+            LivingEntity thrower,
+            boolean canDestroy ,
+            float attackDamage,
+            ItemStack thrownStackIn
+    ) {
+        super(EntityRegistry.WEAPONTHROW, thrower, worldIn, thrownStackIn);
         this.attackDamage = attackDamage;
         this.dataTracker.set(COMPOUND_STACK, thrownStackIn.copy().writeNbt(new NbtCompound()));
         this.dataTracker.set(LOYALTY_LEVEL, (byte)WeaponThrowEntity.getReturnOrLoyaltyEnchantment(thrownStackIn));
@@ -82,8 +89,8 @@ public class WeaponThrowEntity extends PersistentProjectileEntity implements Fly
         this.dataTracker.set(SHOULD_DESTROY, canDestroy);
     }
 
-    public WeaponThrowEntity(World worldIn, double x, double y, double z) {
-        super(EntityRegistry.WEAPONTHROW, x, y, z, worldIn);
+    public WeaponThrowEntity(World worldIn, double x, double y, double z, ItemStack item) {
+        super(EntityRegistry.WEAPONTHROW, x, y, z, worldIn, item);
     }
 
     protected void initDataTracker() {
@@ -118,31 +125,29 @@ public class WeaponThrowEntity extends PersistentProjectileEntity implements Fly
 
     public void tick() {
 
-        if (this.inGroundTime > 4 && !this.dealtDamage) {
-            this.dealtDamage = true;
-        }
+        dealtDamage = (inGroundTime > 4 && !dealtDamage);
 
-        if(!this.getDestroyedBlock().equals(BlockPos.ZERO) && !this.getWorld().isClient) {
+        if(getDestroyedBlock() != BlockPos.ZERO && !getWorld().isClient) {
 
-            this.doInteractions(() -> {
+            doInteractions(() -> {
                 SoundEvent event = this.getWorld().getBlockState(this.getDestroyedBlock()).getSoundGroup().getBreakSound();
                 boolean destroyed = ((ServerPlayerEntity) Objects.requireNonNull(this.getOwner())).interactionManager.tryBreakBlock(this.getDestroyedBlock());
                 if(destroyed) {
-                    this.getWorld().playSound(null, this.getDestroyedBlock(), event , SoundCategory.AMBIENT, 10, 1.0F);
+                    getWorld().playSound(null, this.getDestroyedBlock(), event , SoundCategory.AMBIENT, 10, 1.0F);
                 }
             });
-            this.setDestroyedBlock(BlockPos.ORIGIN);
+            setDestroyedBlock(BlockPos.ORIGIN);
         }
 
         int gravityWorld = ConfigRegistry.COMMON.get().enchantments.enableGravity ? EnchantmentHelper.getLevel(EnchantmentHandler.GRAVITY, this.getItemStack()) : 0;
-        if(gravityWorld > 0) {this.setNoGravity(true);
+        if(gravityWorld > 0) {
+            this.setNoGravity(true);
             if(this.getWorld().isOutOfHeightLimit(this.getBlockPos())) {
                 this.setVelocity(this.getVelocity().multiply(1, 0, 1));
             }
+
             if((Math.abs(this.getVelocity().getX()) < 0.1 && Math.abs(this.getVelocity().getZ()) < 0.1)) {
-
                 this.setNoGravity(false);
-
             }
         }
 
@@ -152,7 +157,7 @@ public class WeaponThrowEntity extends PersistentProjectileEntity implements Fly
 
         if (i > 0 && (this.dealtDamage || this.isNoClip()) && entity != null) {
 
-            if (!this.shouldReturnToThrower()) {
+            if (!shouldReturnToThrower()) {
                 if (!this.getWorld().isClient && this.pickupType == PersistentProjectileEntity.PickupPermission.ALLOWED) {
                     this.dropStack(this.getItemStack(), 0.1F);
                 }
@@ -198,98 +203,95 @@ public class WeaponThrowEntity extends PersistentProjectileEntity implements Fly
         return this.dealtDamage ? null : super.getEntityCollision(p_37575_, p_37576_);
     }
 
-    @Override
-    protected void onEntityHit(EntityHitResult p_213868_1_) {
+    private void handleDamage(LivingEntity entity) {
+        var contusionWorld = ENCHANTMENT_CONFIG.enableConccusion ? EnchantmentHelper.getLevel(EnchantmentHandler.CONCCUSION, getItemStack()) : 0;
+        var groundedWorld = ENCHANTMENT_CONFIG.enableGroundedEdge ? EnchantmentHelper.getLevel(EnchantmentHandler.GROUNDEDEDGE, getItemStack()) : 0;
+        var fireTime = EnchantmentHelper.getLevel(Enchantments.FIRE_ASPECT, getItemStack());
 
-
-        Entity entity = p_213868_1_.getEntity();
-        float f = this.attackDamage;
-        if (entity instanceof LivingEntity livingentity) {
-
-            f += ConfigRegistry.COMMON.get().enchantments.enableThrow ? EnchantmentHelper.getLevel(EnchantmentHandler.THROW, this.getItemStack())*1F : 0;
-            f += EnchantmentHelper.getAttackDamage(this.getItemStack(), livingentity.getGroup());
+        if(contusionWorld > 0) {
+            entity.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, 20*2*contusionWorld, 5));
+            entity.addStatusEffect(new StatusEffectInstance(StatusEffects.NAUSEA, 20*2*contusionWorld, 5));
         }
 
-        Entity entity1 = this.getOwner();
-//	      DamageSource damagesource = DamageSource.thrownProjectile(this, entity1 == null ? this : entity1);
-        var damageSource = this.getDamageSources().thrown(this, entity1 == null ? this : entity1);
 
-
-
-        this.dealtDamage = true;
-        SoundEvent soundevent = SoundEvents.ITEM_TRIDENT_HIT;
-
-        if (entity.damage(damageSource, f)) {
-
-            if (entity.getType() == EntityType.ENDERMAN) {
-                return;
-            }
-
-            if (entity instanceof LivingEntity livingentity1) {
-
-
-                int contusionWorld = ConfigRegistry.COMMON.get().enchantments.enableConccusion ? EnchantmentHelper.getLevel(EnchantmentHandler.CONCCUSION, this.getItemStack()) : 0;
-
-                if (contusionWorld > 0) {
-                    livingentity1.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, 20*2*contusionWorld, 5));
-                    livingentity1.addStatusEffect(new StatusEffectInstance(StatusEffects.NAUSEA, 20*5*contusionWorld, 3));
-                }
-
-                int fireTime = EnchantmentHelper.getLevel(Enchantments.FIRE_ASPECT, this.getItemStack());
-                int groundedWorld = ConfigRegistry.COMMON.get().enchantments.enableGroundedEdge ? EnchantmentHelper.getLevel(EnchantmentHandler.GROUNDEDEDGE, this.getItemStack()) : 0;
-
-                if(fireTime > 0 || groundedWorld > 0) {
-                    List<LivingEntity> nearEntities = this.getWorld().getNonSpectatingEntities(LivingEntity.class, this.getBoundingBox().expand(1.0D));
-
-                    if(!nearEntities.isEmpty()) {
-                        for(LivingEntity nearEntity: nearEntities) {
-                            if(nearEntity.getRandom().nextInt(3) == 0) {
-                                nearEntity.setOnFireFor(fireTime);
-                            }
-                            nearEntity.addStatusEffect(new StatusEffectInstance(StatusEffects.WEAKNESS, 80, groundedWorld - 1));
-                        }
+        if (fireTime > 0 || groundedWorld > 0) {
+            var nearEntities = getWorld().getNonSpectatingEntities(LivingEntity.class, getBoundingBox().expand(1.0));
+            if (!nearEntities.isEmpty()) {
+                for (var nearEntity : nearEntities) {
+                    if (nearEntity.getRandom().nextInt(3) == 0) {
+                        nearEntity.setOnFireFor(fireTime);
                     }
-                }
-
-                if (entity1 instanceof LivingEntity) {
-                    EnchantmentHelper.onUserDamaged(livingentity1, entity1);
-                    EnchantmentHelper.onTargetDamaged((LivingEntity)entity1, livingentity1);
-                }
-
-                this.onHit(livingentity1);
-
-                if(this.getItemStack().getItem() instanceof BlockItem) {
-                    Block blockItem = Block.getBlockFromItem(this.getItemStack().getItem());
-                    if(blockItem instanceof SandBlock) {
-                        if(livingentity1.getRandom().nextInt(10) == 0) livingentity1.addStatusEffect(new StatusEffectInstance(StatusEffects.BLINDNESS, 60, 3));
-                    }
-                    else if (blockItem instanceof TorchBlock){
-                        if(livingentity1.getRandom().nextInt(5) == 0) livingentity1.setOnFireFor(1);
-                    }
-                    else if (blockItem instanceof AnvilBlock){
-                        livingentity1.addStatusEffect(new StatusEffectInstance(StatusEffects.NAUSEA, 60, 3));
-                        livingentity1.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, 60, 5));
-                    }
-                }else {
-                    Item itemThrowed = this.getItemStack().getItem();
-                    if(itemThrowed.equals(Items.BLAZE_ROD) || itemThrowed.equals(Items.BLAZE_POWDER)) {
-                        livingentity1.setOnFireFor(1);
-                    }
+                    nearEntity.addStatusEffect(new StatusEffectInstance(StatusEffects.WEAKNESS, 80, groundedWorld - 1));
                 }
             }
+        }
+    }
 
+    private void handleItemType(WeaponThrowEntity weapon, LivingEntity target) {
+        var weaponItem = weapon.getItemStack().getItem();
+        if (weaponItem instanceof BlockItem block) {
+            var blockItem = Block.getBlockFromItem(block);
+            switch (blockItem) {
+                case ColoredFallingBlock _ -> {
+                    if (target.getRandom().nextInt(10) == 0)
+                        target.addStatusEffect(new StatusEffectInstance(StatusEffects.BLINDNESS, 60, 3));
+                }
+                case TorchBlock _ -> {
+                    if (target.getRandom().nextInt(10) == 0)
+                        target.setOnFireFor(1);
+                }
+                case AnvilBlock _ -> {
+                    target.addStatusEffect(new StatusEffectInstance(StatusEffects.NAUSEA, 60, 3));
+                    target.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, 60, 3));
+                }
+                default -> {}
+            }
+        } else if (weaponItem == Items.BLAZE_ROD || weaponItem == Items.BLAZE_POWDER)
+            target.setOnFireFor(1);
+    }
 
+    @Override
+    protected void onEntityHit(EntityHitResult hitResult) {
+        Entity entity = hitResult.getEntity();
+        float damage = attackDamage;
+        Entity owner = this.getOwner();
+        var damageSource = getDamageSources().thrown(this, owner == null ? this : owner);
+        var sound = SoundEvents.ITEM_TRIDENT_HIT;
+
+        // from kotlin ver
+        if (getItemStack().getItem() instanceof BlockItem blockItem) {
+            var block = Block.getBlockFromItem(blockItem);
+            sound = block.getDefaultState().getSoundGroup().getHitSound();
+        }
+
+        dealtDamage = true;
+        if (entity instanceof LivingEntity livingEntity) {
+            damage += ENCHANTMENT_CONFIG.enableThrow ? EnchantmentHelper.getLevel(EnchantmentHandler.THROW, getItemStack()) : 0;
+            damage += EnchantmentHelper.getAttackDamage(getItemStack(), livingEntity.getGroup());
+
+            if (entity.damage(damageSource, damage)) {
+                if (entity.getType() == EntityType.ENDERMAN) return;
+
+                handleDamage(livingEntity);
+
+                if (owner instanceof LivingEntity lvEntity) {
+                    EnchantmentHelper.onUserDamaged(lvEntity, owner);
+                    EnchantmentHelper.onTargetDamaged(lvEntity, entity);
+                }
+
+                onHit(livingEntity);
+                handleItemType(this, livingEntity);
+            }
         }
 
         this.setVelocity(this.getVelocity().multiply(-0.01D, -0.1D, -0.01D));
 
-        this.playSound(soundevent, 1.0F, 1.0F);
+        this.playSound(sound, 1.0F, 1.0F);
 
     }
 
 
     protected SoundEvent getHitSound() {
-
         return SoundEvents.BLOCK_METAL_HIT;
     }
 
@@ -313,7 +315,6 @@ public class WeaponThrowEntity extends PersistentProjectileEntity implements Fly
         }
 
         this.dataTracker.set(LOYALTY_LEVEL, (byte)WeaponThrowEntity.getReturnOrLoyaltyEnchantment(this.getItemStack()));
-
     }
 
 

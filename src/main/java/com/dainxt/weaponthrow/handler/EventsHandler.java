@@ -1,5 +1,6 @@
 package com.dainxt.weaponthrow.handler;
 
+import com.dainxt.weaponthrow.packets.S2CThrowPacket;
 import com.google.common.collect.Multimap;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.entity.EquipmentSlot;
@@ -15,7 +16,6 @@ import com.dainxt.weaponthrow.Interface.IPlayerEntityMixin;
 import com.dainxt.weaponthrow.capabilities.PlayerThrowData;
 import com.dainxt.weaponthrow.entity.WeaponThrowEntity;
 import com.dainxt.weaponthrow.events.OnStartPlayerTick;
-import com.dainxt.weaponthrow.packets.SPacketThrow;
 import com.dainxt.weaponthrow.packets.State;
 
 public class EventsHandler {
@@ -39,7 +39,7 @@ public class EventsHandler {
 
                 if(cap.getAction().equals(State.START) || cap.getAction().equals(State.FINISH)) {
 
-                    PacketHandler.sendToAll(player, new SPacketThrow(player.getUuid(), PlayerThrowData.getMaximumCharge(player), cap.getAction().equals(State.START)));
+                    PacketHandler.sendToAll(player, new S2CThrowPacket(player.getUuid(), PlayerThrowData.getMaximumCharge(player), cap.getAction().equals(State.START)));
 
                     if(cap.getAction().equals(State.FINISH)) {
                         cap.setAction(State.NONE);
@@ -71,24 +71,24 @@ public class EventsHandler {
     }
 
     // original code
-    public static void onThrowItem(ServerPlayerEntity serverplayer, State action){
+    public static void onThrowItem(ServerPlayerEntity serverPlayer, State action){
 
 
-        ServerWorld world = (ServerWorld) serverplayer.getWorld();
-        ItemStack stack = serverplayer.getMainHandStack();
+        ServerWorld world = (ServerWorld) serverPlayer.getWorld();
+        ItemStack stack = serverPlayer.getMainHandStack();
 
         boolean isThrowable = ConfigRegistry.COMMON.get().experimental.shouldThrowItemsToo;
 
         Multimap<EntityAttribute, EntityAttributeModifier> multimap = stack.getAttributeModifiers(EquipmentSlot.MAINHAND);
         boolean haveAttributes = multimap.containsKey(EntityAttributes.GENERIC_ATTACK_DAMAGE) || multimap.containsKey(EntityAttributes.GENERIC_ATTACK_SPEED);
 
-        PlayerThrowData data = ((IPlayerEntityMixin) serverplayer).weaponThrow$getThrowPower();
+        PlayerThrowData data = ((IPlayerEntityMixin) serverPlayer).weaponThrow$getThrowPower();
 
         if ((isThrowable || haveAttributes) && !stack.isEmpty()) {
 
             boolean cdConfig = ConfigRegistry.COMMON.get().general.notUseWhenCooldown;
 
-            if(!(serverplayer.getItemCooldownManager().getCooldownProgress(stack.getItem(), 1.0F) > 0 && cdConfig)) {
+            if(!(serverPlayer.getItemCooldownManager().getCooldownProgress(stack.getItem(), 1.0F) > 0 && cdConfig)) {
 
                 data.setAction(action);
 
@@ -102,8 +102,8 @@ public class EventsHandler {
                     float baseExhaustion = 0.05F;
                     float modThrow = 1.0F;
 
-                    if(Math.signum(PlayerThrowData.getMaximumCharge(serverplayer)) != 0.0F) {
-                        modThrow = 1.F - (data.getChargeTime()/(float)PlayerThrowData.getMaximumCharge(serverplayer));
+                    if(Math.signum(PlayerThrowData.getMaximumCharge(serverPlayer)) != 0.0F) {
+                        modThrow = 1.F - (data.getChargeTime()/(float)PlayerThrowData.getMaximumCharge(serverPlayer));
                     }
 
                     data.resetCharging();
@@ -115,8 +115,8 @@ public class EventsHandler {
                     }
 
                     if(haveAttributes) {
-                        baseThrow = 20/ serverplayer.getAttackCooldownProgressPerTick();
-                        baseExhaustion = serverplayer.getAttackCooldownProgressPerTick()/20;
+                        baseThrow = 20/ serverPlayer.getAttackCooldownProgressPerTick();
+                        baseExhaustion = serverPlayer.getAttackCooldownProgressPerTick()/20;
                     }
 
                     if(baseThrow>0) {
@@ -126,26 +126,15 @@ public class EventsHandler {
                         double toolMultiplier = 0.0D;
 
                         if(haveAttributes) {
-                            baseDamage = (float) serverplayer.getAttributeValue(EntityAttributes.GENERIC_ATTACK_DAMAGE);
+                            baseDamage = (float) serverPlayer.getAttributeValue(EntityAttributes.GENERIC_ATTACK_DAMAGE);
 
                             var baseMultiplier = ConfigRegistry.COMMON.get().multipliers.tools;
-
-                            /**
-                             *  potential opt:
-                             *  1. Map based opt
-                             *  ```java
-                             *  var itemMap = new HashMap<Key, Path of variable>
-                             *  for (var pair in itemMap.entrySet()) {
-                             *      if (pair.getKey().isInstance(item)) {xxx}
-                             *  }
-                             *  ```
-                             */
                             toolMultiplier += switch(stack.getItem()) {
-                                case SwordItem sword -> baseMultiplier.swordMultiplier;
-                                case AxeItem axe -> baseMultiplier.axeMultiplier;
-                                case PickaxeItem pickaxe -> baseMultiplier.pickaxeMultiplier;
-                                case ShovelItem shovel -> baseMultiplier.shovelMultiplier;
-                                case HoeItem hoe -> baseMultiplier.hoeMultiplier;
+                                case SwordItem _ -> baseMultiplier.swordMultiplier;
+                                case AxeItem _ -> baseMultiplier.axeMultiplier;
+                                case PickaxeItem _ -> baseMultiplier.pickaxeMultiplier;
+                                case ShovelItem _ -> baseMultiplier.shovelMultiplier;
+                                case HoeItem _ -> baseMultiplier.hoeMultiplier;
                                 default -> 1.0;
                             };
                         }
@@ -154,7 +143,7 @@ public class EventsHandler {
                             toolMultiplier = 1.0F;
                         }
 
-                        int size = serverplayer.isSneaking() ? stack.getCount() : 1;
+                        int size = serverPlayer.isSneaking() ? stack.getCount() : 1;
 
                         double bDamageMul = ConfigRegistry.COMMON.get().multipliers.damages.baseDamageMultiplier;
                         double sDamageMul = ConfigRegistry.COMMON.get().multipliers.damages.stackDamageMultiplier;
@@ -174,17 +163,17 @@ public class EventsHandler {
                         double totalExhaustion = (baseExhaustion)*(1*bExhaustionMul + modThrow*mExhaustionMul) + (size*sExhaustionMul);
                         totalExhaustion*=toolMultiplier;
 
-                        WeaponThrowEntity throwedEntity = new WeaponThrowEntity(world, serverplayer, shouldDestroy, (float) totalDamage, stack.split(size));
-                        throwedEntity.setVelocity(serverplayer, serverplayer.getPitch(), serverplayer.getYaw(), 0.0F, (float) totalVelocity, 1.0F);
-                        serverplayer.addExhaustion((float) totalExhaustion);
+                        WeaponThrowEntity thrownEntity = new WeaponThrowEntity(world, serverPlayer, shouldDestroy, (float) totalDamage, stack.split(size));
+                        thrownEntity.setVelocity(serverPlayer, serverPlayer.getPitch(), serverPlayer.getYaw(), 0.0F, (float) totalVelocity, 1.0F);
+                        serverPlayer.addExhaustion((float) totalExhaustion);
 
-                        world.spawnEntity(throwedEntity);
+                        world.spawnEntity(thrownEntity);
 
                         SoundEvent soundevent = SoundEvents.ENTITY_EGG_THROW;
-                        throwedEntity.playSound(soundevent, 1.0F, 0.5F);
+                        thrownEntity.playSound(soundevent, 1.0F, 0.5F);
                     }
                 }
-                ((IPlayerEntityMixin) serverplayer).weaponThrow$setThrowPower(data);
+                ((IPlayerEntityMixin) serverPlayer).weaponThrow$setThrowPower(data);
             }
         }
     }
